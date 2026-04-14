@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Career-Ops -- AI Job Search Pipeline
 
 ## Origin
@@ -44,6 +48,64 @@ To rollback: `node update-system.mjs rollback`
 ## What is career-ops
 
 AI-powered job search automation built on Claude Code: pipeline tracking, offer evaluation, CV generation, portal scanning, batch processing.
+
+## Development Commands
+
+### Setup
+```bash
+npm install
+npx playwright install chromium
+npm run doctor          # validates Node version, deps, Playwright, cv.md, config files
+```
+
+### Testing
+```bash
+node test-all.mjs          # full suite (63+ checks, includes dashboard Go build)
+node test-all.mjs --quick  # skip dashboard build (~30s faster, used in CI)
+```
+Tests cover: .mjs syntax, script execution, liveness classification, dashboard compilation, data contract validation, personal data leak detection, absolute path checks, mode file integrity, CLAUDE.md required sections, VERSION semver.
+
+### Pipeline Utilities
+```bash
+npm run verify     # validate pipeline state (verify-pipeline.mjs)
+npm run merge      # merge batch/tracker-additions/*.tsv into applications.md
+npm run dedup      # remove duplicate entries from applications.md
+npm run scan       # zero-token portal scanner
+npm run pdf        # generate CV PDFs via Playwright
+```
+
+### Dashboard (Go TUI)
+```bash
+cd dashboard && go build -o career-dashboard .
+./career-dashboard --path ..    # point to career-ops root
+```
+Built with Bubble Tea + Lipgloss. Features: pipeline view with 6 filter tabs, 4 sort modes, inline report previews, real-time status updates (writes back to applications.md). Catppuccin Mocha theme.
+
+## Data Flow Architecture
+
+```
+scan.mjs → data/pipeline.md → evaluate (manual or batch) → reports/{num}-{slug}-{date}.md
+                                                          → output/cv-{num}.pdf
+                                                          → batch/tracker-additions/{num}-{slug}.tsv
+                                                                    ↓
+                                                          merge-tracker.mjs → data/applications.md
+```
+
+**Scanner:** `scan.mjs` hits Greenhouse/Ashby/Lever APIs directly (zero LLM tokens). Deduplicates against `data/scan-history.tsv`, appends new URLs to `data/pipeline.md`.
+
+**Liveness:** `check-liveness.mjs` wraps `liveness-core.mjs` — classifies job postings as active/expired/suspicious. Expired signals always win over generic "Apply" button text.
+
+**PDF generation:** `generate-pdf.mjs` uses Playwright to render `templates/cv-template.html` → PDF. Normalizes Unicode for ATS compatibility (em-dashes, smart quotes, zero-width chars).
+
+**Batch system:** `batch/batch-runner.sh` orchestrates parallel `claude -p` workers:
+```bash
+bash batch/batch-runner.sh              # default sequential
+bash batch/batch-runner.sh --parallel 3 # 3 concurrent workers
+bash batch/batch-runner.sh --retry-failed
+bash batch/batch-runner.sh --start-from 15
+bash batch/batch-runner.sh --dry-run
+```
+Input: `batch/batch-input.tsv` (id, url, source, notes). Worker prompt: `batch/batch-prompt.md` with placeholders (`{{URL}}`, `{{REPORT_NUM}}`, `{{DATE}}`). Lock file prevents double execution.
 
 ### Main Files
 
