@@ -21,6 +21,7 @@ portals.yml
 modes/_profile.md
 .update-dismissed
 .update-lock
+cv.md
 
 # Generated
 .resolved-prompt-*
