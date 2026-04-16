@@ -14,6 +14,7 @@ batch/tracker-additions/**/*.tsv
 !batch/tracker-additions/.gitkeep
 jds/*
 !jds/.gitkeep
+interview-prep/story-bank.md
 
 # User config and customization (never auto-updated)
 config/profile.yml
