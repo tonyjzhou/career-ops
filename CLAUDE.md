@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 # Career-Ops -- AI Job Search Pipeline
 
 ## Origin
@@ -41,6 +37,7 @@ Parse the JSON output:
 - `{"status": "up-to-date"}` → say nothing
 - `{"status": "dismissed"}` → say nothing
 - `{"status": "offline"}` → say nothing
+- `{"status": "no-remote-version"}` → say nothing (checker reached GitHub but neither VERSION nor the latest release tag parsed as semver — treat as a silent non-failure, same as offline)
 
 The user can also say "check for updates" or "update career-ops" at any time to force a check.
 To rollback: `node update-system.mjs rollback`
@@ -48,64 +45,6 @@ To rollback: `node update-system.mjs rollback`
 ## What is career-ops
 
 AI-powered job search automation built on Claude Code: pipeline tracking, offer evaluation, CV generation, portal scanning, batch processing.
-
-## Development Commands
-
-### Setup
-```bash
-npm install
-npx playwright install chromium
-npm run doctor          # validates Node version, deps, Playwright, cv.md, config files
-```
-
-### Testing
-```bash
-node test-all.mjs          # full suite (63+ checks, includes dashboard Go build)
-node test-all.mjs --quick  # skip dashboard build (~30s faster, used in CI)
-```
-Tests cover: .mjs syntax, script execution, liveness classification, dashboard compilation, data contract validation, personal data leak detection, absolute path checks, mode file integrity, CLAUDE.md required sections, VERSION semver.
-
-### Pipeline Utilities
-```bash
-npm run verify     # validate pipeline state (verify-pipeline.mjs)
-npm run merge      # merge batch/tracker-additions/*.tsv into applications.md
-npm run dedup      # remove duplicate entries from applications.md
-npm run scan       # zero-token portal scanner
-npm run pdf        # generate CV PDFs via Playwright
-```
-
-### Dashboard (Go TUI)
-```bash
-cd dashboard && go build -o career-dashboard .
-./career-dashboard --path ..    # point to career-ops root
-```
-Built with Bubble Tea + Lipgloss. Features: pipeline view with 6 filter tabs, 4 sort modes, inline report previews, real-time status updates (writes back to applications.md). Catppuccin Mocha theme.
-
-## Data Flow Architecture
-
-```
-scan.mjs → data/pipeline.md → evaluate (manual or batch) → reports/{num}-{slug}-{date}.md
-                                                          → output/cv-{num}.pdf
-                                                          → batch/tracker-additions/{num}-{slug}.tsv
-                                                                    ↓
-                                                          merge-tracker.mjs → data/applications.md
-```
-
-**Scanner:** `scan.mjs` hits Greenhouse/Ashby/Lever APIs directly (zero LLM tokens). Deduplicates against `data/scan-history.tsv`, appends new URLs to `data/pipeline.md`.
-
-**Liveness:** `check-liveness.mjs` wraps `liveness-core.mjs` — classifies job postings as active/expired/suspicious. Expired signals always win over generic "Apply" button text.
-
-**PDF generation:** `generate-pdf.mjs` uses Playwright to render `templates/cv-template.html` → PDF. Normalizes Unicode for ATS compatibility (em-dashes, smart quotes, zero-width chars).
-
-**Batch system:** `batch/batch-runner.sh` orchestrates parallel `claude -p` workers:
-```bash
-bash batch/batch-runner.sh              # default sequential
-bash batch/batch-runner.sh --parallel 3 # 3 concurrent workers
-bash batch/batch-runner.sh --retry-failed
-bash batch/batch-runner.sh --start-from 15
-bash batch/batch-runner.sh --dry-run
-```
-Input: `batch/batch-input.tsv` (id, url, source, notes). Worker prompt: `batch/batch-prompt.md` with placeholders (`{{URL}}`, `{{REPORT_NUM}}`, `{{DATE}}`). Lock file prevents double execution.
 
 ### Main Files
 
@@ -116,7 +55,9 @@ Input: `batch/batch-input.tsv` (id, url, source, notes). Worker prompt: `batch/b
 | `data/scan-history.tsv` | Scanner dedup history |
 | `portals.yml` | Query and company config |
 | `templates/cv-template.html` | HTML template for CVs |
+| `templates/cv-template.tex` | LaTeX/Overleaf template for CVs |
 | `generate-pdf.mjs` | Playwright: HTML to PDF |
+| `generate-latex.mjs` | LaTeX CV validator + pdflatex compiler |
 | `article-digest.md` | Compact proof points from portfolio (optional) |
 | `interview-prep/story-bank.md` | Accumulated STAR+R stories across evaluations |
 | `interview-prep/{company}-{role}.md` | Company-specific interview intel reports |
@@ -141,6 +82,7 @@ When using [OpenCode](https://opencode.ai), the following slash commands are ava
 | `/career-ops-contact` | `/career-ops contacto` | LinkedIn outreach (find contacts + draft) |
 | `/career-ops-deep` | `/career-ops deep` | Deep company research |
 | `/career-ops-pdf` | `/career-ops pdf` | Generate ATS-optimized CV |
+| `/career-ops-latex` | `/career-ops latex` | Export CV as LaTeX/Overleaf .tex |
 | `/career-ops-training` | `/career-ops training` | Evaluate course/cert against goals |
 | `/career-ops-project` | `/career-ops project` | Evaluate portfolio project idea |
 | `/career-ops-tracker` | `/career-ops tracker` | Application status overview |
@@ -151,6 +93,30 @@ When using [OpenCode](https://opencode.ai), the following slash commands are ava
 | `/career-ops-followup` | `/career-ops followup` | Follow-up cadence tracker |
 
 **Note:** OpenCode commands invoke the same `.claude/skills/career-ops/SKILL.md` skill used by Claude Code. The `modes/*` files are shared between both platforms.
+
+### Gemini CLI Commands
+
+When using the [Gemini CLI](https://github.com/google-gemini/gemini-cli), the following slash commands are available (defined in `.gemini/commands/`):
+
+| Command | Claude Code Equivalent | Description |
+|---------|------------------------|-------------|
+| `/career-ops` | `/career-ops` | Show menu or evaluate JD with args |
+| `/career-ops-pipeline` | `/career-ops pipeline` | Process pending URLs from inbox |
+| `/career-ops-evaluate` | `/career-ops oferta` | Evaluate job offer (A-G scoring) |
+| `/career-ops-compare` | `/career-ops ofertas` | Compare and rank multiple offers |
+| `/career-ops-contact` | `/career-ops contacto` | LinkedIn outreach (find contacts + draft) |
+| `/career-ops-deep` | `/career-ops deep` | Deep company research |
+| `/career-ops-pdf` | `/career-ops pdf` | Generate ATS-optimized CV |
+| `/career-ops-training` | `/career-ops training` | Evaluate course/cert against goals |
+| `/career-ops-project` | `/career-ops project` | Evaluate portfolio project idea |
+| `/career-ops-tracker` | `/career-ops tracker` | Application status overview |
+| `/career-ops-apply` | `/career-ops apply` | Live application assistant |
+| `/career-ops-scan` | `/career-ops scan` | Scan portals for new offers |
+| `/career-ops-batch` | `/career-ops batch` | Batch processing with parallel workers |
+| `/career-ops-patterns` | `/career-ops patterns` | Analyze rejection patterns and improve targeting |
+| `/career-ops-followup` | `/career-ops followup` | Follow-up cadence tracker |
+
+**Note:** Gemini CLI commands are defined in `.gemini/commands/*.toml`. The project context is auto-loaded from `GEMINI.md`. All `modes/*` files are shared across Claude Code, OpenCode, and Gemini CLI.
 
 ### First Run — Onboarding (IMPORTANT)
 
