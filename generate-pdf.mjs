@@ -11,8 +11,8 @@
  */
 
 import { chromium } from 'playwright';
-import { resolve, dirname } from 'path';
-import { readFile } from 'fs/promises';
+import { resolve, dirname, join } from 'path';
+import { readFile, writeFile, unlink } from 'fs/promises';
 import { mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 
@@ -133,15 +133,20 @@ async function generatePDF() {
     console.log(`🧹 ATS normalization: ${totalReplacements} replacements (${breakdown})`);
   }
 
+  let tmpHtmlPath;
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
 
-    // Set content with file base URL for any relative resources
-    await page.setContent(html, {
-      waitUntil: 'networkidle',
-      baseURL: `file://${dirname(inputPath)}/`,
-    });
+    // NOTE: page.setContent() ignores its baseURL option AND loads markup as an
+    // about:blank (null-origin) document, which Chromium blocks from fetching
+    // file:// subresources. The result: @font-face fonts silently fail to load and
+    // the PDF falls back to Helvetica. Fix: write the processed HTML to a temp file
+    // in the SAME directory as the input (so relative ./fonts or ../fonts paths
+    // resolve) and navigate to it — a real file:// origin can load file:// fonts.
+    tmpHtmlPath = join(dirname(inputPath), `.pdfgen-${process.pid}-${Date.now()}.html`);
+    await writeFile(tmpHtmlPath, html, 'utf-8');
+    await page.goto(`file://${tmpHtmlPath}`, { waitUntil: 'networkidle' });
 
     // Wait for fonts to load
     await page.evaluate(() => document.fonts.ready);
@@ -160,7 +165,6 @@ async function generatePDF() {
     });
 
     // Write PDF
-    const { writeFile } = await import('fs/promises');
     await writeFile(outputPath, pdfBuffer);
 
     // Count pages (approximate from PDF structure)
@@ -174,6 +178,7 @@ async function generatePDF() {
     return { outputPath, pageCount, size: pdfBuffer.length };
   } finally {
     await browser.close();
+    if (tmpHtmlPath) await unlink(tmpHtmlPath).catch(() => {});
   }
 }
 
