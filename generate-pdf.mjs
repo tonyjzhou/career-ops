@@ -11,8 +11,8 @@
  */
 
 import { chromium } from 'playwright';
-import { resolve, dirname, join } from 'path';
-import { readFile, writeFile, unlink } from 'fs/promises';
+import { resolve, dirname } from 'path';
+import { readFile } from 'fs/promises';
 import { mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 
@@ -70,7 +70,105 @@ function normalizeTextForATS(html) {
     t = t.replace(/\u2026/g, () => { bump('ellipsis', 1); return '...'; });
     t = t.replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, () => { bump('zero-width', 1); return ''; });
     t = t.replace(/\u00A0/g, () => { bump('nbsp', 1); return ' '; });
+    // Arrows often stripped by PDF text extractors \u2014 replace with ASCII for ATS safety.
+    // Consume surrounding whitespace to avoid double-spacing in output.
+    t = t.replace(/\s*\u2192\s*/g, () => { bump('right-arrow', 1); return ' to '; });
+    t = t.replace(/\s*\u2190\s*/g, () => { bump('left-arrow', 1); return ' from '; });
+    t = t.replace(/\s*[\u2191\u2193]\s*/g, () => { bump('vert-arrow', 1); return ' '; });
+    // Middle dot and bullet glyphs garble in some extractors \u2014 replace with pipe.
+    t = t.replace(/\s*\u00B7\s*/g, () => { bump('middot', 1); return ' | '; });
+    t = t.replace(/\s*\u2022\s*/g, () => { bump('bullet', 1); return ' | '; });
+    // Currency symbols sometimes stripped by font-subsetted PDFs \u2014 spell out
+    // the unambiguous ones. \u00A5 is intentionally NOT converted: it maps to both
+    // Japanese Yen (JPY) and Chinese Yuan (CNY), so any spelled-out code would be
+    // wrong for half of users \u2014 better to leave the glyph than emit bad data.
+    t = t.replace(/\u20AC/g, () => { bump('euro', 1); return 'EUR '; });
+    t = t.replace(/\u00A3/g, () => { bump('pound', 1); return 'GBP '; });
     return t;
+  }
+}
+
+const SECTION_ALIASES = new Map([
+  ['summary', 'summary'],
+  ['professional summary', 'summary'],
+  ['competencies', 'competencies'],
+  ['core competencies', 'competencies'],
+  ['experience', 'experience'],
+  ['work experience', 'experience'],
+  ['professional experience', 'experience'],
+  ['projects', 'projects'],
+  ['selected projects', 'projects'],
+  ['personal projects', 'projects'],
+  ['education', 'education'],
+  ['education & certifications', 'education'],
+  ['certifications', 'certifications'],
+  ['skills', 'skills'],
+  ['technical skills', 'skills'],
+]);
+
+function normalizeSectionTitle(text) {
+  return text
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\{\{[^}]+\}\}/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/[*_`~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function sectionKey(text) {
+  const normalized = normalizeSectionTitle(text);
+  return SECTION_ALIASES.get(normalized) ?? normalized;
+}
+
+function extractRenderedSectionOrder(html) {
+  const titleMatches = [...html.matchAll(/class=["'][^"']*\bsection-title\b[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/gi)];
+  const sections = [];
+
+  for (const match of titleMatches) {
+    const text = normalizeSectionTitle(match[1]);
+    if (!text) continue;
+    sections.push({ key: sectionKey(text), title: text });
+  }
+
+  return sections;
+}
+
+function extractSourceSectionOrder(markdown) {
+  const sections = [];
+
+  for (const line of markdown.split(/\r?\n/)) {
+    const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (!heading) continue;
+    const text = normalizeSectionTitle(heading[2]);
+    if (!text) continue;
+    sections.push({ key: sectionKey(text), title: text });
+  }
+
+  return sections;
+}
+
+function validateCvSectionOrder(html, cvMarkdown) {
+  const rendered = extractRenderedSectionOrder(html);
+  const source = extractSourceSectionOrder(cvMarkdown);
+  if (rendered.length < 2 || source.length < 2) return;
+
+  const sourcePositions = new Map(source.map((section, index) => [section.key, index]));
+  const renderedComparable = rendered.filter(section => sourcePositions.has(section.key));
+  if (renderedComparable.length < 2) return;
+
+  for (let i = 1; i < renderedComparable.length; i++) {
+    const previous = renderedComparable[i - 1];
+    const current = renderedComparable[i];
+    if (sourcePositions.get(current.key) < sourcePositions.get(previous.key)) {
+      const renderedOrder = renderedComparable.map(section => section.title).join(' -> ');
+      const sourceOrder = source
+        .filter(section => renderedComparable.some(renderedSection => renderedSection.key === section.key))
+        .map(section => section.title)
+        .join(' -> ');
+      throw new Error(`CV section order diverges from cv.md: rendered ${renderedOrder}; cv.md ${sourceOrder}`);
+    }
   }
 }
 
@@ -111,6 +209,13 @@ async function generatePDF() {
 
   // Read HTML to inject font paths as absolute file:// URLs
   let html = await readFile(inputPath, 'utf-8');
+  let cvMarkdown = '';
+  try {
+    cvMarkdown = await readFile(resolve(__dirname, 'cv.md'), 'utf-8');
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+  }
+  validateCvSectionOrder(html, cvMarkdown);
 
   // Resolve font paths relative to career-ops/fonts/
   const fontsDir = resolve(__dirname, 'fonts');
@@ -133,20 +238,32 @@ async function generatePDF() {
     console.log(`🧹 ATS normalization: ${totalReplacements} replacements (${breakdown})`);
   }
 
-  let tmpHtmlPath;
+  return renderHtmlToPdf(html, outputPath, { format, baseDir: dirname(inputPath) });
+}
+
+/**
+ * Render an HTML string to a PDF file via headless Chromium.
+ *
+ * @param {string} html - Full HTML document to render.
+ * @param {string} outputPath - Absolute path to write the PDF to.
+ * @param {{format?: 'a4'|'letter', baseDir?: string}} [opts]
+ * @returns {Promise<{outputPath: string, pageCount: number, size: number}>}
+ */
+export async function renderHtmlToPdf(html, outputPath, opts = {}) {
+  const format = opts.format || 'a4';
+  const baseDir = opts.baseDir || process.cwd();
+
+  mkdirSync(dirname(outputPath), { recursive: true });
+
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
 
-    // NOTE: page.setContent() ignores its baseURL option AND loads markup as an
-    // about:blank (null-origin) document, which Chromium blocks from fetching
-    // file:// subresources. The result: @font-face fonts silently fail to load and
-    // the PDF falls back to Helvetica. Fix: write the processed HTML to a temp file
-    // in the SAME directory as the input (so relative ./fonts or ../fonts paths
-    // resolve) and navigate to it — a real file:// origin can load file:// fonts.
-    tmpHtmlPath = join(dirname(inputPath), `.pdfgen-${process.pid}-${Date.now()}.html`);
-    await writeFile(tmpHtmlPath, html, 'utf-8');
-    await page.goto(`file://${tmpHtmlPath}`, { waitUntil: 'networkidle' });
+    // Set content with file base URL for any relative resources
+    await page.setContent(html, {
+      waitUntil: 'load',
+      baseURL: `file://${baseDir}/`,
+    });
 
     // Wait for fonts to load
     await page.evaluate(() => document.fonts.ready);
@@ -165,6 +282,7 @@ async function generatePDF() {
     });
 
     // Write PDF
+    const { writeFile } = await import('fs/promises');
     await writeFile(outputPath, pdfBuffer);
 
     // Count pages (approximate from PDF structure)
@@ -178,11 +296,15 @@ async function generatePDF() {
     return { outputPath, pageCount, size: pdfBuffer.length };
   } finally {
     await browser.close();
-    if (tmpHtmlPath) await unlink(tmpHtmlPath).catch(() => {});
   }
 }
 
-generatePDF().catch((err) => {
-  console.error('❌ PDF generation failed:', err.message);
-  process.exit(1);
-});
+const isMain = process.argv[1] && import.meta.url === `file://${resolve(process.argv[1])}`;
+if (isMain) {
+  generatePDF().catch((err) => {
+    console.error('❌ PDF generation failed:', err.message);
+    process.exit(1);
+  });
+}
+
+export { normalizeTextForATS };
