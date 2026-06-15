@@ -255,15 +255,21 @@ export async function renderHtmlToPdf(html, outputPath, opts = {}) {
 
   mkdirSync(dirname(outputPath), { recursive: true });
 
+  const { writeFile, unlink } = await import('fs/promises');
+
+  let tmpHtmlPath;
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
 
-    // Set content with file base URL for any relative resources
-    await page.setContent(html, {
-      waitUntil: 'load',
-      baseURL: `file://${baseDir}/`,
-    });
+    // NOTE: page.setContent() loads markup as a null-origin about:blank document,
+    // which Chromium blocks from fetching file:// subresources — @font-face fonts
+    // silently fail and the PDF falls back to Helvetica. Write the processed HTML to
+    // a temp file in baseDir and navigate to it: a real file:// origin loads the
+    // file:// font URLs. (Re-applied after a system update reverted commit d42135f.)
+    tmpHtmlPath = `${baseDir}/.pdfgen-${process.pid}-${Date.now()}.html`;
+    await writeFile(tmpHtmlPath, html, 'utf-8');
+    await page.goto(`file://${tmpHtmlPath}`, { waitUntil: 'networkidle' });
 
     // Wait for fonts to load
     await page.evaluate(() => document.fonts.ready);
@@ -282,7 +288,6 @@ export async function renderHtmlToPdf(html, outputPath, opts = {}) {
     });
 
     // Write PDF
-    const { writeFile } = await import('fs/promises');
     await writeFile(outputPath, pdfBuffer);
 
     // Count pages (approximate from PDF structure)
@@ -296,6 +301,7 @@ export async function renderHtmlToPdf(html, outputPath, opts = {}) {
     return { outputPath, pageCount, size: pdfBuffer.length };
   } finally {
     await browser.close();
+    if (tmpHtmlPath) await unlink(tmpHtmlPath).catch(() => {});
   }
 }
 
