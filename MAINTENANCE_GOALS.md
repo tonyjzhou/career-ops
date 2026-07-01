@@ -1,11 +1,11 @@
 # MAINTENANCE_GOALS.md — maintenance backlog
 
 <!-- scan:meta
-generated: 2026-06-23
-commit: 12b3b51
+generated: 2026-06-30
+commit: 1b1595e
 branch: main
 ecosystem: node(.mjs)+go(dashboard)
-tools: node, npm@audit, go@test, test-all.mjs(423-checks), verify-pipeline.mjs, doctor.mjs
+tools: node, npm@audit, go@test+vet, test-all.mjs(464-checks), verify-pipeline.mjs, doctor.mjs
 goals_total: 2
 tiers: P1=1 P2=1
 emit_cutoff: P>=20
@@ -15,18 +15,18 @@ emit_cutoff: P>=20
 > The runner re-grounds each entry against current HEAD before firing, so a finding fixed
 > since the scan is skipped (not re-run).
 >
-> **Baseline at scan time is GREEN:** `test-all.mjs` 423 passed / 0 failed (15 warnings),
-> `updater-migration-tests` 57/0, `tracker-columns-tests` 7/0, `test-salary-filter` 124/0,
-> Go dashboard all `ok`, `verify-pipeline` 0 errors, `doctor` onboarding not needed,
-> no broken markdown links, no committed secrets, 0 unreleased commits. No P0 trust-gate
-> findings — both emitted goals are quality/security hygiene over a healthy baseline.
+> **Baseline at scan time is GREEN:** `test-all.mjs --quick` 464 passed / 0 failed (19 warnings),
+> Go dashboard `go vet` clean + all packages `ok`, `verify-pipeline` 0 errors (1 warning),
+> `doctor` onboarding not needed. No P0 trust-gate findings — both emitted goals are
+> quality/security hygiene over a healthy baseline. The 19 warnings are all benign upstream-author
+> attribution (`santifer.io`) leaking past an incomplete `no-user-data` allowlist — that IS M2.
 
 ## Summary
 
 | rank | id | tier | category | one-line | effort | depends-on | status |
 |------|----|------|----------|----------|--------|------------|--------|
 | 1 | M1 | P1 | security | Patch js-yaml moderate DoS (GHSA-h67p-54hq-rp68) | 1 | — | open |
-| 2 | M2 | P2 | lint | Clear 15 personal-data warnings (allowlist 3 translated READMEs) | 1 | — | open |
+| 2 | M2 | P2 | lint | Clear 19 personal-data warnings (allowlist 3 READMEs + MAINTENANCE_GOALS.md) | 1 | — | open |
 
 <!-- `effort` is the numeric 1–5 score (1 = autofix … 5 = multi-file refactor), the SAME value
      as the `effort=` token in each goal comment. `status` MUST be the FINAL column and one of
@@ -42,27 +42,29 @@ goal comment, and stamp `completed_at`.
 
 ## Goals
 
-<!-- goal id=M1 rank=1 tier=P1 category=security status=open depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=12b3b51 -->
+<!-- goal id=M1 rank=1 tier=P1 category=security status=open depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=1b1595e -->
 ### - [ ] M1 · P1 · security · Patch the js-yaml moderate DoS (GHSA-h67p-54hq-rp68)
 
-- **Evidence (captured during scan):**
+- **Evidence (captured during scan, HEAD 1b1595e):**
   ```
   $ npm audit
-  js-yaml  <=4.1.1
+  js-yaml  4.0.0 - 4.1.1
   Severity: moderate
   JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases
   fix available via `npm audit fix`
   1 moderate severity vulnerability
 
-  $ npm ls js-yaml
-  career-ops@1.12.0
-  `-- js-yaml@4.1.1          # DIRECT dependency, package.json: "js-yaml": "^4.1.1"
+  $ npm audit --audit-level=moderate ; echo $?
+  1                         # gate is RED → goal genuinely open
+
+  $ npm outdated
+  js-yaml   4.1.1  4.3.0  5.2.0   # DIRECT dependency, package.json: "js-yaml": "^4.1.1"
   ```
 - **Why:** `js-yaml` is a direct dependency and career-ops parses YAML it reads from disk
   (`portals.yml`, `config/profile.yml`, `templates/*.yml`). A crafted merge-key alias chain
-  triggers quadratic-complexity parsing. `fixAvailable: true` (clean patch, no major bump),
-  so this is a one-command resolution. Moderate severity (DoS, not RCE) → P1, not the P0
-  trust-gate override.
+  triggers quadratic-complexity parsing. `fixAvailable: true` and the patched `4.3.0` sits
+  inside the existing `^4.1.1` range, so `npm audit fix` resolves it with no major bump.
+  Moderate severity (DoS, not RCE) → P1, not the P0 trust-gate override.
 - **Scope:** IN `package.json`, `package-lock.json`; OUT every source/`*.mjs`/`dashboard` path.
 - **Depends on:** none.
 - **Scope guard:** stop after 8 turns and report the remaining audit output.
@@ -76,35 +78,35 @@ goal comment, and stamp `completed_at`.
   ```
 <!-- goal:end id=M1 -->
 
-<!-- goal id=M2 rank=2 tier=P2 category=lint status=open depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=12b3b51 -->
-### - [ ] M2 · P2 · lint · Clear the 15 personal-data warnings by allowlisting 3 translated READMEs
+<!-- goal id=M2 rank=2 tier=P2 category=lint status=open depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=1b1595e -->
+### - [ ] M2 · P2 · lint · Clear the 19 personal-data warnings by allowlisting 3 READMEs + the backlog file
 
-- **Evidence (captured during scan):**
+- **Evidence (captured during scan, HEAD 1b1595e):**
   ```
-  $ node test-all.mjs   (warnings)
-  ⚠️  Possible personal data in README.ar.md: "santifer.io"
-  ⚠️  Possible personal data in README.pl.md: "santifer.io"   (×7 total in .pl)
-  ⚠️  Possible personal data in README.ua.md: "santifer.io"   (×7 total in .ua)
+  $ node test-all.mjs --quick 2>&1 | grep 'Possible personal data' \
+      | sed -E 's/.*data in ([^:]+):.*/\1/' | sort | uniq -c
+        4 MAINTENANCE_GOALS.md      # the backlog itself quotes santifer.io in evidence blocks
+        1 README.ar.md
+        7 README.pl.md
+        7 README.ua.md              # = 19 total
 
-  $ node test-all.mjs 2>&1 | grep -oE "Possible personal data in [^:]+" | sort | uniq -c
-        1 Possible personal data in README.ar.md
-        7 Possible personal data in README.pl.md
-        7 Possible personal data in README.ua.md   (= 15 total)
+  $ node test-all.mjs 2>&1 | grep -c 'Possible personal data'
+  19                                # gate is RED → goal genuinely open
 
-  test-all.mjs:553  const allowedFiles = [
-  test-all.mjs:555    'README.md', 'README.es.md', 'README.fr.md', 'README.ja.md', 'README.ko-KR.md',
-  test-all.mjs:556    'README.pt-BR.md', 'README.ru.md', 'README.cn.md', 'README.zh-TW.md',
-                      # README.ar.md / README.pl.md / README.ua.md are MISSING from the list
+  test-all.mjs:556  const allowedFiles = [   # README.md, README.da.md, README.es.md, … test-all.mjs, CLAUDE.md, AGENTS.md
+                                             # MISSING: README.ar.md, README.pl.md, README.ua.md, MAINTENANCE_GOALS.md
   ```
-- **Why:** The `no-user-data` guard's whole job is to catch the USER's personal data leaking
-  into committed files. Its `allowedFiles` allowlist credits the upstream author (santifer.io,
-  identical to the already-allowed README.md and 8 other translations) — but 3 translations
-  (`ar`, `pl`, `ua`) were never added, so they emit 15 false-positive warnings. A guard that
-  cries wolf 15× will hide a real future leak in the noise. The fix is to add the 3 filenames
-  to the existing `allowedFiles` array — the attribution they contain is legitimate, exactly
-  like the other allowed translations.
-- **Scope:** IN `test-all.mjs` (the `allowedFiles` array only); OUT the README files themselves
-  (the author attribution is intentional and must NOT be removed).
+- **Why:** The `no-user-data` guard `git grep`s TRACKED files for leak patterns and skips any
+  path in `allowedFiles`. Every one of the 19 hits is the upstream author's attribution
+  (`santifer.io` / `hi@santifer.io`) — identical to the already-allowed `README.md` and 8 other
+  translations — not the user's data. Three translations (`ar`, `pl`, `ua`) were never added to
+  the allowlist, and this generated backlog (`MAINTENANCE_GOALS.md`, tracked and not gitignored)
+  now quotes `santifer.io` inside M1/M2 evidence, so it trips the guard 4× against itself. A guard
+  that cries wolf 19× hides a real future leak in the noise. Fix: add all four filenames to the
+  existing `allowedFiles` array. (Allowlisting only the 3 READMEs leaves the backlog's 4 hits and
+  the gate stays red — the fix MUST include `MAINTENANCE_GOALS.md`.)
+- **Scope:** IN `test-all.mjs` (the `allowedFiles` array only); OUT the README files and
+  MAINTENANCE_GOALS.md themselves (the author attribution is intentional and must NOT be removed).
 - **Depends on:** none.
 - **Scope guard:** stop after 6 turns and report the remaining personal-data warnings.
 - **Gate (deterministic — exit 0 ⟺ satisfied):**
