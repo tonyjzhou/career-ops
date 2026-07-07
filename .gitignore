@@ -2,6 +2,11 @@
 data/applications.md
 data/pipeline.md
 data/scan-history.tsv
+data/follow-ups.md
+data/blockers.md
+data/pdf-index.tsv
+data/scan-runs.tsv
+data/salary-observations.tsv
 reports/*.md
 !reports/.gitkeep
 output/*
