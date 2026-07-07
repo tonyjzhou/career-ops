@@ -23,13 +23,13 @@ This complements — does not replace — the per-URL liveness gate in `auto-pip
    a. Claim the next sequential `REPORT_NUM` atomically by running `node reserve-report-num.mjs` (and release the sentinel using `node reserve-report-num.mjs --release <num>` after the report is written)
    b. **Extract JD** using Playwright (browser_navigate + browser_snapshot) → WebFetch → WebSearch
    c. If the URL is not accessible → mark as `- [!]` with a note and continue
-   d. **Execute full auto-pipeline**: Evaluation A-F → Report .md → PDF (if score >= `auto_pdf_score_threshold`) → Tracker
+   d. **Execute full auto-pipeline**: Evaluation A-F → Report .md → PDF (if score >= `auto_pdf_score_threshold`) → Tracker. Read `modes/_custom.md` → Pipeline Rules, if it exists, and apply its override here. Default (if absent or silent): standard pipeline execution.
    e. **Move from "Pending" to "Processed"**: `- [x] #NNN | URL | Company | Role | Score/5 | PDF ✅/❌`
 
    **About the PDF gate (configurable):** Read `config/profile.yml` → `auto_pdf_score_threshold`. If the key does not exist, default to `3.0` (this mode's original gate). If the evaluation score is less than the threshold, skip PDF generation: write the report normally, show in the header `**PDF:** not generated — run /career-ops pdf {company-slug} to create on demand`, and mark PDF ❌ in the tracker. If the score is ≥ threshold, generate the PDF as usual.
 
    **Tuning it:** Generating a tailored PDF costs ~30–60s per entry (Playwright launch + HTML render) and produces files that often go unused — most roles score in the 2.x/3.x range and never reach the application stage. Raise `auto_pdf_score_threshold` (e.g. `4.0`) to write only the report for marginal offers and produce the PDF on demand via `/career-ops pdf {slug}`; set `0` to generate one for every offer. Both modes (Path A `/career-ops pipeline` and Path B `batch/batch-runner.sh`) read the same key, so behavior is identical regardless of which path processes an offer.
-3. **If there are 3+ pending URLs**, launch agents in parallel (Agent tool with `run_in_background`) to maximize speed.
+3. **If there are 3+ pending URLs**, launch agents in parallel (Agent tool with `run_in_background`) to maximize speed — at most one agent per pending URL. Each is a **single-pass worker**: it evaluates its one URL and must **not** spawn further subagents or invoke other skills; its company/comp research stays inline and bounded (see `modes/_shared.md` → Subagent delegation). This keeps a pipeline run from fanning out into a recursive agent swarm.
 4. **At the end**, show summary table:
 
 ```
@@ -42,6 +42,9 @@ This complements — does not replace — the per-URL liveness gate in `auto-pip
 ## Pending
 - [ ] https://jobs.example.com/posting/123
 - [ ] https://boards.greenhouse.io/company/jobs/456 | Company Inc | Senior PM
+- [ ] https://jobs.ashbyhq.com/acme/789 | Acme Corp | Solutions Architect | Remote (US)
+- [ ] https://jobs.ashbyhq.com/acme/790 | Acme Corp | AI Engineer | Remote (US) | 180000-220000 USD
+- [ ] https://jobs.ashbyhq.com/acme/791 | Acme Corp | Staff PM | note: curated shortlist
 - [!] https://private.url/job — Error: login required
 
 ## Processed
@@ -49,9 +52,29 @@ This complements — does not replace — the per-URL liveness gate in `auto-pip
 - [x] #144 | https://boards.greenhouse.io/xyz/jobs/012 | BigCo | SA | 2.1/5 | PDF ❌
 ```
 
+Pending lines are variable-width. The rawest form is a bare pasted URL,
+`- [ ] {url}` (1 column) — what you drop into the inbox by hand. Scanner-written
+entries add `| {company} | {title}` (3 columns) plus two optional trailing
+columns: `| {location}` (4th) and `| {compensation}` (5th). The scanner fills the
+trailing columns only when the ATS exposes them, so 1-, 3-, 4-, and 5-column rows
+are all valid — `{url} | {company} | {title} | {location} | {compensation}` is the
+maximum (canonical) shape, not the only one. The columns are positional, so a row
+carrying compensation always includes the location cell (empty if unknown); a row
+with only a location stays 4 columns. Existing shorter rows remain valid and are
+read as having empty values for the missing trailing columns.
+
+One further trailing segment is optional and **labeled**, not positional:
+`| note: {text}`. Unlike the positional cells above, it can ride on any row shape
+(`- [ ] {url} | {company} | {title} | note: curated shortlist` is valid), because
+the `note:` prefix identifies it regardless of column position. It carries a
+free-text ranking signal an importer attached to the offer (the deterministic
+scanner never sets it). Treat it as a hint when triaging; it does not change how
+you process the URL.
+
 ## Intelligent JD detection from URL
 
 1. **Playwright (preferred):** `browser_navigate` + `browser_snapshot`. Works with all SPAs.
+   - **Opt-in — CLI extractor (`scan.extractor: cli` in `config/profile.yml`):** run `node browser-extract.mjs <url>` (default `--mode jd`) instead; it returns compact `{ "url", "title", "text" }` — the JD main text at ~4–5× fewer tokens than a full snapshot. Use its `text` as the JD. **Fall back silently** to `browser_navigate` + `browser_snapshot` if it errors or is missing.
 2. **WebFetch (fallback):** For static pages or when Playwright is unavailable.
 3. **WebSearch (last resort):** Search in secondary portals that index the JD.
 

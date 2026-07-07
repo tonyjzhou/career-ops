@@ -43,3 +43,5 @@ bun.lock
 .agents/
 career-dashboard
 package-lock.json
+data/offers/*
+!data/offers/.gitkeep

@@ -15,6 +15,19 @@ When the candidate pastes a **URL** (not JD text), confirm the posting is still 
 
 Do not continue to Block A until this gate is resolved. The snapshot captured here is reused by Block G's freshness signals.
 
+## Bounded Research Budget
+
+Company, compensation, and hiring-signal research must be a single-pass lookup, not an open-ended investigation. This mode is an evaluation workflow, not deep company research.
+
+Hard limits for Blocks D and G combined:
+- hard cap: 5 total WebSearch queries
+- Prefer targeted queries that answer more than one question; stop early when enough evidence exists.
+- Do not invoke `deep-research`, `deep`, or any other research skill.
+- Do not spawn subagents or delegate research to another agent.
+- Do not continue researching after the query cap is reached; summarize the evidence found and explicitly mark missing data as unavailable.
+
+If deeper company research is useful, recommend running `/career-ops deep` separately after the evaluation.
+
 ## Step 0 — Archetype Detection
 
 Classify the job into one of the 6 archetypes (see `_shared.md`). If it is a hybrid, indicate the 2 closest ones. This determines:
@@ -31,7 +44,23 @@ Table with:
 - Seniority
 - Remote (full/hybrid/onsite)
 - Team size (if mentioned)
+- **Culture screen** (see `_shared.md` § Scoring System): pass / caution / fail, with the specific evidence found or missing — not just a score, name what you saw
 - TL;DR in 1 sentence
+
+### Geo-mismatch check
+
+After filling the Remote row, cross-check the posting's **structured location field** (the location/remote designation shown on the posting page or in ATS metadata — not the Remote row you just wrote) against the JD body:
+
+- **Contradiction** = the location field says remote, but the JD body states a **binding attendance requirement**: "hybrid", "X days per week/month" in office, "in-office", "onsite"/"on-site", mandatory office attendance, or a relocation requirement.
+- **Not a contradiction:** negations ("no onsite requirement"), optional or occasional in-person events ("quarterly offsites", "optional co-working space"), or generic benefits boilerplate.
+- If the JD body says nothing about location or attendance, emit no flag — silence is absence of signal, not agreement.
+- If the input has no structured location field (pasted JD text only), skip this check.
+
+On contradiction, add exactly one flag line at the top of Block B in the report, quoting the evidence **verbatim** (never paraphrase):
+
+`⚠️ **Geo-mismatch:** location field says remote, but JD body says "{verbatim JD line}"`
+
+The flag is an additive line only — Block B's existing content stays unchanged below it, and no flag line appears when there is no contradiction.
 
 ## Block B — Match with CV
 
@@ -59,12 +88,20 @@ Read `cv.md`. Create a table with each JD requirement mapped to exact lines in t
 
 ## Block D — Comp and Demand
 
-Use WebSearch for:
+Use the bounded research budget above for:
 - Current salaries for the role (Glassdoor, Levels.fyi, Blind)
 - Company's compensation reputation
 - Demand trend for the role
 
 Table with data and cited sources. If there is no data, state it instead of inventing.
+
+The table's **first row is always the JD's own advertised figure, verbatim** — before any researched market data:
+
+```markdown
+| Advertised (JD) | {verbatim figure or "not stated"} | JD |
+```
+
+Never blend the advertised figure with researched estimates or replace it with them — market research rows follow below it. This same verbatim figure goes into the Machine Summary `advertised_comp` key (see the report format).
 
 ## Block E — Customization Plan
 
@@ -120,7 +157,7 @@ Analyze the job posting for signals that indicate whether this is a real, active
 - What ratio of the JD is role-specific vs generic boilerplate?
 - Any internal contradictions? (entry-level title + staff requirements, etc.)
 
-**3. Company Hiring Signals** (2-3 WebSearch queries, combine with Block D research):
+**3. Company Hiring Signals** (use remaining queries from the bounded research budget, combine with Block D research):
 - Search: `"{company}" layoffs {year}` -- note date, scale, departments
 - Search: `"{company}" hiring freeze {year}` -- note any announcements
 - If layoffs found: are they in the same department as this role?
@@ -133,6 +170,25 @@ Analyze the job posting for signals that indicate whether this is a real, active
 - Is this a common role that typically fills in 4-6 weeks?
 - Does the role make sense for this company's business?
 - Is the seniority level one that legitimately takes longer to fill?
+
+**6. Employment Classification Risk** (from JD text; jurisdiction from `config/profile.yml` → `location.country`):
+
+Every jurisdiction splits work into two buckets under different names: an "employment contract" carrying statutory protections and benefits, vs. a "service/labour/consulting contract" that doesn't — even when the day-to-day work looks identical from the outside. Candidates routinely can't tell which one a JD is offering until tax time or until a benefit they assumed they had turns out not to exist. Check the JD text against the jurisdiction-specific term list below (add a new row to extend to another country — this table is a data reference, not instruction logic, so extending it never requires touching the rule text):
+
+| Jurisdiction | Contractor/services-status terms |
+|---|---|
+| Canada | "T4A", "independent contractor", "self-employed", "invoice for services" |
+| US | "1099", "independent contractor", "W-2 not provided" |
+| UK | "self-employed", "umbrella company", "outside IR35" / "inside IR35" |
+| Other jurisdictions | "labour contract" vs "employment contract" phrasing, "service agreement", "consulting agreement" (e.g., 劳务合同 vs 劳动合同 in China) |
+
+Plus a jurisdiction-agnostic structural check — **"contract position" alone is not enough to trigger this**, since plenty of legitimate fixed-term *employee* roles use that phrase. Only flag when the JD has explicit contractor-status wording (asks the candidate to "invoice," or to operate as a "consultant"/"freelancer," rather than being "hired"/"employed") **and** at least one corroborating omission (no benefits language, no vacation/PTO mention, no defined end date, no standard employment-standards phrasing, no mention of statutory deductions/withholding).
+
+If this combination is present, append a short, non-alarmist note to the report (this is descriptive, never prescriptive — never tell the user to refuse a role):
+
+> ⚠️ **Employment classification signal:** This posting uses language associated with contractor/services status rather than standard employee status — e.g. "{specific phrase found}". If eligibility for programs like CEC/PR depends on employee status, or if you want statutory benefits, deductions, and protections, confirm classification directly with the employer before accepting.
+
+This signal does not change the High Confidence / Proceed with Caution / Suspicious tier below — it is orthogonal to ghost-job detection and is reported separately.
 
 ### Output format:
 
@@ -223,6 +279,7 @@ Save full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md`.
 - `{###}` = next sequential number (3 digits, zero-padded). To allocate it atomically and prevent race conditions, you MUST run `node reserve-report-num.mjs` to claim the number (stdout returns `{###}`), write the report, and then run `node reserve-report-num.mjs --release {###}` to release the sentinel.
 - `{company-slug}` = company name in lowercase, without spaces (use hyphens)
 - `{YYYY-MM-DD}` = current date
+- **Agency-mediated posting with unknown end employer (#1596):** slug is `confidential-{agency-slug}` (e.g. `042-confidential-hays-2026-07-06.md`). The file is NEVER renamed after the employer is revealed — update the title/header/YAML instead.
 
 **Report format:**
 
@@ -231,12 +288,16 @@ Save full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md`.
 
 **Date:** {YYYY-MM-DD}
 **URL:**
+**Via:** {agency/recruiter firm, or — for direct applications}
 **Archetype:** {detected}
 **Score:** {X/5}
 **Legitimacy:** {High Confidence | Proceed with Caution | Suspicious}
 **PDF:** {path or pending}
 
 ---
+
+## Machine Summary
+(YAML fence for downstream scripts — see requirement below)
 
 ## A) Role Summary
 (full content of block A)
@@ -268,14 +329,17 @@ Save full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md`.
 (list of 15-20 keywords from the JD for ATS optimization)
 ```
 
+**Machine Summary (required):** every report carries a `## Machine Summary` YAML fence directly after the header — same schema, exact field names, and rules as the "Machine Summary" block in `batch/batch-prompt.md` (do not duplicate the schema here; that file is the source of truth). It includes `advertised_comp`: the JD's own salary figure **verbatim** (e.g. `"80-90k EUR"`), or `null` when the JD states nothing — never estimated, never replaced with researched market data. This key seeds the advertised salary observation read by `node salary-gap.mjs`.
+
 ### 2. Record in tracker
 
 **ALWAYS** record in `data/applications.md`:
 - Next sequential number
 - Current date
-- Company
+- Company — the END employer. If the JD is agency-mediated ("our client", agency domain, no employer named), ASK the user which agency it came through, use `?` as Company, and put a distinguishing descriptor in Notes (e.g. `fintech, Leeds`). Never write "Confidential" — the `?` marker is locale-invariant and can't collide with a real firm.
+- Via (when the tracker has the column) — the agency/recruiter firm, `—` for direct. In the tracker-addition TSV, append it as a tagged extra field: `via={Agency}` (see the TSV format spec).
 - Role
-- Score: match average (1-5)
+- Score: match average (1-5) — Read `modes/_custom.md` → Scoring Rules, if it exists, and apply its override here. Default (if absent or silent): average of block scores.
 - Status: `Evaluated`
 - PDF: ❌ (or ✅ if auto-pipeline generated PDF)
 - Report: root-relative link `[001](reports/001-company-2026-01-01.md)` (when merged via `merge-tracker.mjs` it is normalized to be relative to the tracker's own dir, e.g. `../reports/...`; see #760)
@@ -283,5 +347,21 @@ Save full evaluation in `reports/{###}-{company-slug}-{YYYY-MM-DD}.md`.
 **Tracker format:**
 
 ```markdown
-| # | Date | Company | Role | Score | Status | PDF | Report |
+| # | Date | Company | Role | Score | Status | PDF | Report | Notes |
 ```
+
+With the optional Via column (intermediary channel, #1596) after Company:
+
+```markdown
+| # | Date | Company | Via | Role | Score | Status | PDF | Report | Notes |
+```
+
+### 3. Salary observations (desired ask only)
+
+If — and only if — the user **explicitly stated a role-specific desired number for THIS application** in the conversation ("I'd ask 95k here"), append one `desired` line (source `user`) to `data/salary-observations.tsv` (create the file if missing; format per `docs/SCRIPTS.md` → salary-gap):
+
+```text
+{tracker#}\t{YYYY-MM-DD}\tdesired\t{amount}\t{currency}\tuser\t{short context note}
+```
+
+Never infer a desired number from the JD, the score, or past conversations. The profile default (`config/profile.yml` → `compensation.target_range`) needs no line — `salary-gap.mjs` reads it as the fallback. The advertised figure also needs no line: the report's `advertised_comp` **is** the advertised observation.
