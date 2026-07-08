@@ -1,11 +1,11 @@
 # MAINTENANCE_GOALS.md — maintenance backlog
 
 <!-- scan:meta
-generated: 2026-06-30
-commit: 1b1595e
+generated: 2026-07-07
+commit: c7f2b53
 branch: main
 ecosystem: node(.mjs)+go(dashboard)
-tools: node, npm@audit, go@test+vet, test-all.mjs(464-checks), verify-pipeline.mjs, doctor.mjs
+tools: node, npm@audit, test-all.mjs(1535-checks), verify-pipeline.mjs, doctor.mjs
 goals_total: 2
 tiers: P1=1 P2=1
 emit_cutoff: P>=20
@@ -15,18 +15,18 @@ emit_cutoff: P>=20
 > The runner re-grounds each entry against current HEAD before firing, so a finding fixed
 > since the scan is skipped (not re-run).
 >
-> **Baseline at scan time is GREEN:** `test-all.mjs --quick` 464 passed / 0 failed (19 warnings),
-> Go dashboard `go vet` clean + all packages `ok`, `verify-pipeline` 0 errors (1 warning),
-> `doctor` onboarding not needed. No P0 trust-gate findings — both emitted goals are
-> quality/security hygiene over a healthy baseline. The 19 warnings are all benign upstream-author
-> attribution (`santifer.io`) leaking past an incomplete `no-user-data` allowlist — that IS M2.
+> **Baseline at scan time is GREEN:** `test-all.mjs --quick` 1535 passed / 0 failed
+> (5 warnings), `verify-pipeline` 0 errors (4 warnings). No P0 trust-gate findings — both
+> emitted goals are security/lint hygiene over a healthy baseline. Since the 2026-06-30 scan
+> (1b1595e), commit c7f2b53 cleared 14 of the 19 personal-data warnings (the 3 README
+> translations); the remaining 5 all come from this backlog file itself — that IS M2.
 
 ## Summary
 
 | rank | id | tier | category | one-line | effort | depends-on | status |
 |------|----|------|----------|----------|--------|------------|--------|
 | 1 | M1 | P1 | security | Patch js-yaml moderate DoS (GHSA-h67p-54hq-rp68) | 1 | — | open |
-| 2 | M2 | P2 | lint | Clear 19 personal-data warnings (allowlist 3 READMEs + MAINTENANCE_GOALS.md) | 1 | — | open |
+| 2 | M2 | P2 | lint | Clear 5 personal-data warnings (allowlist MAINTENANCE_GOALS.md) | 1 | — | open |
 
 <!-- `effort` is the numeric 1–5 score (1 = autofix … 5 = multi-file refactor), the SAME value
      as the `effort=` token in each goal comment. `status` MUST be the FINAL column and one of
@@ -42,29 +42,24 @@ goal comment, and stamp `completed_at`.
 
 ## Goals
 
-<!-- goal id=M1 rank=1 tier=P1 category=security status=open depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=1b1595e -->
+<!-- goal id=M1 rank=1 tier=P1 category=security status=open depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=c7f2b53 -->
 ### - [ ] M1 · P1 · security · Patch the js-yaml moderate DoS (GHSA-h67p-54hq-rp68)
 
-- **Evidence (captured during scan, HEAD 1b1595e):**
+- **Evidence (re-confirmed during scan, HEAD c7f2b53; first seen 1b1595e, 2026-06-30):**
   ```
-  $ npm audit
-  js-yaml  4.0.0 - 4.1.1
-  Severity: moderate
+  $ npm audit --audit-level=moderate 2>&1 | tail -8
   JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases
+    - https://github.com/advisories/GHSA-h67p-54hq-rp68
   fix available via `npm audit fix`
-  1 moderate severity vulnerability
-
-  $ npm audit --audit-level=moderate ; echo $?
-  1                         # gate is RED → goal genuinely open
-
-  $ npm outdated
-  js-yaml   4.1.1  4.3.0  5.2.0   # DIRECT dependency, package.json: "js-yaml": "^4.1.1"
+  node_modules/js-yaml
+  1 moderate severity vulnerability     # gate is RED → goal genuinely open
   ```
 - **Why:** `js-yaml` is a direct dependency and career-ops parses YAML it reads from disk
   (`portals.yml`, `config/profile.yml`, `templates/*.yml`). A crafted merge-key alias chain
-  triggers quadratic-complexity parsing. `fixAvailable: true` and the patched `4.3.0` sits
+  triggers quadratic-complexity parsing. `fixAvailable: true` and the patched release sits
   inside the existing `^4.1.1` range, so `npm audit fix` resolves it with no major bump.
-  Moderate severity (DoS, not RCE) → P1, not the P0 trust-gate override.
+  Moderate severity (DoS, not RCE) → P1, not the P0 trust-gate override. Open since the
+  2026-06-30 scan; two maintenance-loop cycles have passed without it being picked up.
 - **Scope:** IN `package.json`, `package-lock.json`; OUT every source/`*.mjs`/`dashboard` path.
 - **Depends on:** none.
 - **Scope guard:** stop after 8 turns and report the remaining audit output.
@@ -78,44 +73,38 @@ goal comment, and stamp `completed_at`.
   ```
 <!-- goal:end id=M1 -->
 
-<!-- goal id=M2 rank=2 tier=P2 category=lint status=open depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=1b1595e -->
-### - [ ] M2 · P2 · lint · Clear the 19 personal-data warnings by allowlisting 3 READMEs + the backlog file
+<!-- goal id=M2 rank=2 tier=P2 category=lint status=open depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=c7f2b53 -->
+### - [ ] M2 · P2 · lint · Clear the 5 personal-data warnings by allowlisting MAINTENANCE_GOALS.md
 
-- **Evidence (captured during scan, HEAD 1b1595e):**
+- **Evidence (re-grounded during scan, HEAD c7f2b53 — narrowed from the 2026-06-30 finding):**
   ```
+  $ node test-all.mjs --quick 2>&1 | grep -c 'Possible personal data'
+  5                                 # gate is RED → goal genuinely open
+
   $ node test-all.mjs --quick 2>&1 | grep 'Possible personal data' \
       | sed -E 's/.*data in ([^:]+):.*/\1/' | sort | uniq -c
-        4 MAINTENANCE_GOALS.md      # the backlog itself quotes santifer.io in evidence blocks
-        1 README.ar.md
-        7 README.pl.md
-        7 README.ua.md              # = 19 total
-
-  $ node test-all.mjs 2>&1 | grep -c 'Possible personal data'
-  19                                # gate is RED → goal genuinely open
-
-  test-all.mjs:556  const allowedFiles = [   # README.md, README.da.md, README.es.md, … test-all.mjs, CLAUDE.md, AGENTS.md
-                                             # MISSING: README.ar.md, README.pl.md, README.ua.md, MAINTENANCE_GOALS.md
+        5 MAINTENANCE_GOALS.md      # ALL remaining hits are this backlog file
   ```
+  At 1b1595e this was 19 warnings across 3 README translations + this file; commit c7f2b53
+  ("fix(ops): keep personal data files out of the public repo") cleared the READMEs but did
+  not allowlist the backlog.
 - **Why:** The `no-user-data` guard `git grep`s TRACKED files for leak patterns and skips any
-  path in `allowedFiles`. Every one of the 19 hits is the upstream author's attribution
-  (`santifer.io` / `hi@santifer.io`) — identical to the already-allowed `README.md` and 8 other
-  translations — not the user's data. Three translations (`ar`, `pl`, `ua`) were never added to
-  the allowlist, and this generated backlog (`MAINTENANCE_GOALS.md`, tracked and not gitignored)
-  now quotes `santifer.io` inside M1/M2 evidence, so it trips the guard 4× against itself. A guard
-  that cries wolf 19× hides a real future leak in the noise. Fix: add all four filenames to the
-  existing `allowedFiles` array. (Allowlisting only the 3 READMEs leaves the backlog's 4 hits and
-  the gate stays red — the fix MUST include `MAINTENANCE_GOALS.md`.)
-- **Scope:** IN `test-all.mjs` (the `allowedFiles` array only); OUT the README files and
-  MAINTENANCE_GOALS.md themselves (the author attribution is intentional and must NOT be removed).
+  path in the `allowedFiles` array in `test-all.mjs`. The remaining hits are the upstream
+  author's attribution domain quoted inside this generated backlog's evidence blocks —
+  identical in kind to the already-allowed `README.md` attributions, not the user's data.
+  A guard that cries wolf 5× on its own backlog hides a real future leak in the noise.
+  Fix: add `MAINTENANCE_GOALS.md` to the existing `allowedFiles` array.
+- **Scope:** IN `test-all.mjs` (the `allowedFiles` array only); OUT `MAINTENANCE_GOALS.md`
+  itself and every README (the author attribution is intentional and must NOT be removed).
 - **Depends on:** none.
 - **Scope guard:** stop after 6 turns and report the remaining personal-data warnings.
 - **Gate (deterministic — exit 0 ⟺ satisfied):**
   ```gate
-  test "$(node test-all.mjs 2>&1 | grep -c 'Possible personal data')" = 0
+  test "$(node test-all.mjs --quick 2>&1 | grep -c 'Possible personal data')" = 0
   ```
 - **/goal (ready to paste):**
   ```goal
-  The latest turn shows the output of `node test-all.mjs 2>&1 | grep -c 'Possible personal data'` reporting `0`, and `git diff --name-only` lists only test-all.mjs — or stop after 6 turns and report the remaining personal-data warnings.
+  The latest turn shows the output of `node test-all.mjs --quick 2>&1 | grep -c 'Possible personal data'` reporting `0`, and `git diff --name-only` lists only test-all.mjs — or stop after 6 turns and report the remaining personal-data warnings.
   ```
 <!-- goal:end id=M2 -->
 
