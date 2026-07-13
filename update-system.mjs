@@ -287,6 +287,9 @@ const USER_PATHS = [
   'modes/_profile.md',
   'modes/_custom.md',
   'MAINTENANCE_GOALS.md', // fork-local: maintenance-loop backlog (not upstream)
+  'TODOS.md', // fork-local: agentic TODOS drain-loop backlog (not upstream)
+  'Makefile', // fork-local: `make loop-test` gate for the TODOS drain loop (not upstream)
+  'scripts/', // fork-local: TODOS drain-loop tooling — loop_next_todo.sh, selector, stats, stop guard (not upstream)
   'voice-dna.md',
   'portals.yml',
   'article-digest.md',

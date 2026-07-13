@@ -50,3 +50,6 @@ career-dashboard
 package-lock.json
 data/offers/*
 !data/offers/.gitkeep
+
+# loop_next_todo.sh per-run stats (scripts/loop_stats.py)
+.loop-runs/

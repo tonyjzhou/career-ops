@@ -389,3 +389,12 @@ Write one TSV file per evaluation to `batch/tracker-additions/{num}-{company-slu
 **RULES:** no markdown bold (`**`), no dates (those go in the date column), no extra text (use the notes column) in the status field.
 @AGENTS.md
 <!-- Add anything Claude Code specific that other agents don't need -->
+
+## Backlog drain loop
+
+`TODOS.md` is the backlog queue (grammar contract in-file; parsed by `scripts/next_todo.py`).
+`/todoify` writes tickets; `/next-todo` drains one; `scripts/loop_next_todo.sh` drains all READY
+items unattended (fresh headless pass per item, commits direct to main; clean tree required).
+`LOOP_DRY_RUN=1 scripts/loop_next_todo.sh` previews. Loop-harness tests: `make loop-test`.
+Local addition — `update-system.mjs apply` overwrites CLAUDE.md; re-add this section after a
+system update (tracked as a TODOS.md ticket).
