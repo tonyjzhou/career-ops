@@ -53,3 +53,11 @@ data/offers/*
 
 # loop_next_todo.sh per-run stats (scripts/loop_stats.py)
 .loop-runs/
+
+# Plugins — local install state + user activation config (public-fork hygiene)
+config/plugins.yml
+plugins.local/
+plugins.lock
+data/gmail-state.json
+# Local one-time OAuth token minter (no secrets in it, but keep it out of the fork)
+get-gmail-token.mjs
