@@ -104,6 +104,7 @@
       "Bash(npx npm publish*)",
       "Bash(docker login*)",
       "Bash(docker push*)",
+      "Bash(docker compose push*)",
       "Bash(gh auth token*)",
       "Bash(gh repo delete*)",
       "Bash(gh release delete*)",
