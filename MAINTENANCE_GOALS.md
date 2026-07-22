@@ -25,8 +25,8 @@ emit_cutoff: P>=20
 
 | rank | id | tier | category | one-line | effort | depends-on | status |
 |------|----|------|----------|----------|--------|------------|--------|
-| 1 | M1 | P1 | security | Patch js-yaml moderate DoS (GHSA-h67p-54hq-rp68) | 1 | — | open |
-| 2 | M2 | P2 | lint | Clear 5 personal-data warnings (allowlist MAINTENANCE_GOALS.md) | 1 | — | open |
+| 1 | M1 | P1 | security | Patch js-yaml moderate DoS (GHSA-h67p-54hq-rp68) | 1 | — | failed |
+| 2 | M2 | P2 | lint | Clear 5 personal-data warnings (allowlist MAINTENANCE_GOALS.md) | 1 | — | done |
 
 <!-- `effort` is the numeric 1–5 score (1 = autofix … 5 = multi-file refactor), the SAME value
      as the `effort=` token in each goal comment. `status` MUST be the FINAL column and one of
@@ -42,8 +42,8 @@ goal comment, and stamp `completed_at`.
 
 ## Goals
 
-<!-- goal id=M1 rank=1 tier=P1 category=security status=open depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=c7f2b53 -->
-### - [ ] M1 · P1 · security · Patch the js-yaml moderate DoS (GHSA-h67p-54hq-rp68)
+<!-- goal id=M1 rank=1 tier=P1 category=security status=failed depends_on= score=45 impact=3 risk=3 effort=1 scanned_at=c7f2b53 failed_at=29ff9be -->
+### - [!] M1 · P1 · security · Patch the js-yaml moderate DoS (GHSA-h67p-54hq-rp68)
 
 - **Evidence (re-confirmed during scan, HEAD c7f2b53; first seen 1b1595e, 2026-06-30):**
   ```
@@ -73,8 +73,8 @@ goal comment, and stamp `completed_at`.
   ```
 <!-- goal:end id=M1 -->
 
-<!-- goal id=M2 rank=2 tier=P2 category=lint status=open depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=c7f2b53 -->
-### - [ ] M2 · P2 · lint · Clear the 5 personal-data warnings by allowlisting MAINTENANCE_GOALS.md
+<!-- goal id=M2 rank=2 tier=P2 category=lint status=done depends_on= score=30 impact=2 risk=3 effort=1 scanned_at=c7f2b53 completed_at=29ff9be -->
+### - [x] M2 · P2 · lint · Clear the 5 personal-data warnings by allowlisting MAINTENANCE_GOALS.md
 
 - **Evidence (re-grounded during scan, HEAD c7f2b53 — narrowed from the 2026-06-30 finding):**
   ```
