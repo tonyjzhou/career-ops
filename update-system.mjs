@@ -143,7 +143,6 @@ const SYSTEM_PATHS = [
   'modes/zh/',
   'modes/zh/interview/',
   'modes/zh-TW/',
-  'CLAUDE.md',
   'CODEX.md',
   'OPENCODE.md',
   'AGENTS.md',

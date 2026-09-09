@@ -382,7 +382,6 @@ npm run build:dashboard   # விருப்பமானது: Standalone Bin
 ```text
 career-ops/
 ├── AGENTS.md                    # அனைத்து CLI-களுக்கும் பொதுவான Agent வழிமுறைகள்
-├── CLAUDE.md                    # Claude Code Wrapper (AGENTS.md-ஐ பயன்படுத்துகிறது)
 ├── CODEX.md                     # Codex Wrapper (AGENTS.md-ஐ பயன்படுத்துகிறது)
 ├── OPENCODE.md                  # OpenCode Wrapper (AGENTS.md-ஐ பயன்படுத்துகிறது)
 ├── GEMINI.md                    # Antigravity-இல் இருமுறை Context ஏற்றப்படுவதைத் தவிர்க்கும் Compatibility Guard

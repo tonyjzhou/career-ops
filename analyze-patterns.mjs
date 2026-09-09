@@ -692,7 +692,7 @@ function parseReport(reportPath) {
   // Fallback: report header field `Archetype: ...` or `Arquetipo: ...` (newer reports use this).
   const headerArchRegex = /^(?:Archetype|Arquetipo):\s*(.+?)$/im;
 
-  // Report header carries `**URL:**` between Score and PDF (see CLAUDE.md /
+  // Report header carries `**URL:**` between Score and PDF (see AGENTS.md /
   // Pipeline Integrity). Capture the first http(s) URL on that line for vendor
   // detection; reports predating the field simply leave url null (→ unknown bucket).
   const urlMatch = plain.match(/^URL:\s*(https?:\/\/\S+)/im);

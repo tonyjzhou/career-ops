@@ -316,7 +316,7 @@ await runWhileLocked({
   completion: 'exports the fresh locked snapshot without losing concurrent rows',
 });
 
-// set-status.mjs is the writer CLAUDE.md names as canonical — the one every
+// set-status.mjs is the writer AGENTS.md names as canonical — the one every
 // mode calls to move a row — so it is the single most important entry in this
 // matrix, and it was the one missing. set-status-tests.mjs already covers the
 // lock TIMEOUT (exit 4) and a non-retryable lock error, but both prove only

@@ -205,7 +205,6 @@ npm run build:dashboard   # optional: build the standalone binary
 
 ```
 career-ops/
-├── CLAUDE.md                    # 에이전트 지시사항
 ├── cv.md                        # 내 이력서 (직접 생성)
 ├── article-digest.md            # 주요 성과 정리 (선택)
 ├── config/

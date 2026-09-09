@@ -368,7 +368,6 @@ Ayrıca **deneysel bir web arayüzü** de var (alfa, opt-in — siz başlatmadı
 ```
 career-ops/
 ├── AGENTS.md                    # Kanonik ajan talimatları (tüm CLI'ler)
-├── CLAUDE.md                    # Claude Code sarmalayıcısı (AGENTS.md'yi içe aktarır)
 ├── CODEX.md                     # Codex sarmalayıcısı (AGENTS.md'yi içe aktarır)
 ├── OPENCODE.md                  # OpenCode sarmalayıcısı (AGENTS.md'yi içe aktarır)
 ├── GEMINI.md                    # Antigravity'nin bağlamı iki kez yüklemesini önleyen eski no-op koruması

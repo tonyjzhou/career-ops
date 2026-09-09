@@ -237,7 +237,6 @@ go build -o career-dashboard .
 ```text
 career-ops/
 ├── AGENTS.md                    # تعليمات وقواعد الوكلاء البرمجية الموحدة
-├── CLAUDE.md                    # واجهة Claude Code والتعليمات المرفقة
 ├── cv.md                        # سيرتك الذاتية المصدرية بصيغة Markdown
 ├── article-digest.md            # نقاط الإثبات والإنجازات الخاصة بمشاريعك (اختياري)
 ├── config/

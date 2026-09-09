@@ -27,7 +27,7 @@ If the fetch fails, stop Step 2 and tell the user you couldn't preview the chang
 Then, only if the fetch succeeded, for each System Layer file category show a summary:
 
 ```bash
-git diff HEAD..FETCH_HEAD --stat -- modes/ CLAUDE.md AGENTS.md *.mjs batch/ dashboard/ templates/ docs/ VERSION DATA_CONTRACT.md
+git diff HEAD..FETCH_HEAD --stat -- modes/ AGENTS.md *.mjs batch/ dashboard/ templates/ docs/ VERSION DATA_CONTRACT.md
 ```
 
 Present to the user as a clear summary:
@@ -72,9 +72,9 @@ Ask the user for confirmation:
 
 If yes:
 1. Capture the current commit as a run-specific pre-update baseline before apply runs, e.g. `PRE_UPDATE_REF=$(git rev-parse HEAD)`. Don't rely on `backup-pre-update-{local}` alone — `update-system.mjs apply` reuses that branch if it already exists, so it may point at an older snapshot.
-2. **Save local CLAUDE.md additions.** `update-system.mjs apply` treats CLAUDE.md as a system file and resets it to the two-line template (`@AGENTS.md` + the local-additions comment). Before applying, read the current CLAUDE.md and save everything after that two-line header — it will need to be restored in step 4 below. If CLAUDE.md has nothing beyond the two-line header, note that there is nothing to restore.
+2. **Preserve local guidance.** Keep user procedures in `modes/_custom.md` (outside system updates). Review any local `AGENTS.md` changes before applying an upstream update; preserve applicable local guidance without recreating the retired wrapper.
 3. Run `node update-system.mjs apply`, capturing its exit code without stopping on failure yet — the restore in step 4 must run either way.
-4. **Restore local CLAUDE.md additions**, regardless of whether step 3 succeeded or failed. `apply` resets CLAUDE.md before it can fail partway through, so a failed apply still leaves CLAUDE.md at the blank two-line template. Re-read CLAUDE.md and append the content saved in step 2 after the two-line header.
+4. **Verify local guidance after apply**, on success and failure. Confirm the intended `AGENTS.md` guidance and user-layer procedures are preserved. The retired wrapper is excluded from `SYSTEM_PATHS` and must not be recreated.
 5. Now check the exit code captured in step 3:
    - If non-zero, treat apply as failed. Show the captured output and offer:
      > "⚠️ Update apply failed. Want me to show the full error, or try `/career-ops update rollback`?"
@@ -118,6 +118,6 @@ If the user says "rollback" or runs `/career-ops update rollback`:
 - `modes/_profile.md` is User Layer too: the compatibility check in Step 3 reads it strictly read-only
 - Exception: `modes/_profile.md` may be edited **only** in Step 4.7, and **only** after the user explicitly confirms each individual rename/removal. Never batch-edit without per-change consent.
 - User-specific customizations (archetypes, scoring weights, narrative) belong in `modes/_profile.md` or `config/profile.yml`, never in `modes/_shared.md`
-- CLAUDE.md's local additions (everything after the two-line `@AGENTS.md` header) MUST be saved before apply and restored immediately after — on both the success AND failure path (Step 4.2, Step 4.4). `update-system.mjs apply` resets CLAUDE.md before it can fail partway through, so a failed apply still needs the restore. `apply` has no awareness of this content and will silently discard it otherwise.
+- Preserve local procedural guidance in `modes/_custom.md`; verify applicable `AGENTS.md` guidance after both successful and failed updates. Do not recreate the retired wrapper.
 - If anything goes wrong, tell the user to run `node update-system.mjs rollback`
 - Keep the output concise — users don't want walls of text during an update

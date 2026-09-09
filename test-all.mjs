@@ -1419,7 +1419,7 @@ console.log('\n5. Data contract validation');
 
 // Check system files exist
 const systemFiles = [
-  'CLAUDE.md', 'CODEX.md', 'OPENCODE.md', 'VERSION', 'DATA_CONTRACT.md', 'docs/CODEX.md',
+  'AGENTS.md', 'CODEX.md', 'OPENCODE.md', 'VERSION', 'DATA_CONTRACT.md', 'docs/CODEX.md',
   'modes/_shared.md', 'modes/_profile.template.md',
   'modes/oferta.md', 'modes/pdf.md', 'modes/scan.md',
   'modes/heuristics/recruiter-side.md',
@@ -1696,7 +1696,7 @@ const allowedFiles = [
   'README.ua.md', 'README.zh-TW.md', 'README.tr.md',
   // Standard project files
   'LICENSE', 'CITATION.cff', 'CONTRIBUTING.md', 'CHANGELOG.md', 'TRADEMARK.md',
-  'package.json', '.github/FUNDING.yml', 'CLAUDE.md', 'AGENTS.md', 'go.mod', 'test-all.mjs',
+  'package.json', '.github/FUNDING.yml', 'AGENTS.md', 'go.mod', 'test-all.mjs',
   '.claude-plugin/marketplace.json', '.claude-plugin/plugin.json', '.github/plugin/plugin.json',
   // Community / governance files (added in v1.3.0, all legitimately reference the maintainer)
   'CODE_OF_CONDUCT.md', 'GOVERNANCE.md', 'SECURITY.md', 'SUPPORT.md',
@@ -2064,7 +2064,6 @@ console.log('\n7d. Output language contract');
 
 const profileExample = readTextLF('config/profile.example.yml');
 const outputLanguageAgentsDoc = readTextLF('AGENTS.md');
-const outputLanguageClaudeDoc = readTextLF('CLAUDE.md');
 const careerOpsSkill = readTextLF('.agents/skills/career-ops/SKILL.md');
 const batchPrompt = readTextLF('batch/batch-prompt.md');
 
@@ -2115,7 +2114,6 @@ if (
 
 const marketModeDocs = [
   ['AGENTS.md', outputLanguageAgentsDoc],
-  ['CLAUDE.md', outputLanguageClaudeDoc],
 ];
 
 const outputRequestSwitchesMarketMode = (text) => text.split('\n').some((line) =>
@@ -3324,15 +3322,13 @@ if (
   }
 }
 
-const claudeMdDoc = readFile('CLAUDE.md');
 const agentsMdDoc = readFile('AGENTS.md');
 if (
-  /^@(?:\.\/)?AGENTS\.md/m.test(claudeMdDoc) &&
   agentsMdDoc.includes('`offer-prep`')
 ) {
-  pass('AGENTS.md documents offer-prep and CLAUDE.md imports it');
+  pass('AGENTS.md documents offer-prep');
 } else {
-  fail('AGENTS.md missing offer-prep mode row or CLAUDE.md is not importing AGENTS.md');
+  fail('AGENTS.md missing offer-prep mode row');
 }
 
 const dataContractDoc = readFile('DATA_CONTRACT.md');
@@ -5285,7 +5281,7 @@ for (const section of requiredSections) {
 
 console.log('\n11. CLI wrapper file integrity');
 
-const cliWrappers = ['CLAUDE.md', 'CODEX.md', 'OPENCODE.md'];
+const cliWrappers = ['CODEX.md', 'OPENCODE.md'];
 for (const f of cliWrappers) {
   if (!fileExists(f)) {
     fail(`Missing CLI wrapper: ${f}`);
@@ -5328,16 +5324,10 @@ if (
   fail('docs/CODEX.md is missing required content');
 }
 
-const claudeWrapperLines = readFile('CLAUDE.md').trim().split(/\r?\n/);
-const claudeWrapperBody = claudeWrapperLines.slice(1).filter(line => line.trim());
-if (
-  claudeWrapperLines[0] === '@AGENTS.md' &&
-  claudeWrapperBody.length <= 1 &&
-  claudeWrapperBody.every(line => { const t = line.trim(); return t.startsWith('<!--') && t.endsWith('-->'); })
-) {
-  pass('CLAUDE.md is a thin AGENTS.md wrapper (#1088)');
+if (!fileExists('CLAUDE.md') && fileExists('AGENTS.md')) {
+  pass('AGENTS.md is canonical; retired CLAUDE.md is absent');
 } else {
-  fail('CLAUDE.md must contain only @AGENTS.md plus an optional Claude-only placeholder comment (#1088)');
+  fail('Expected AGENTS.md without a duplicate CLAUDE.md');
 }
 
 const criticalRoutingContracts = [
@@ -11708,20 +11698,15 @@ try {
   }
   rmSync(autoCopy, { recursive: true, force: true });
 
-  const claudeDoc = readFile('CLAUDE.md');
   const agentsDoc = readFile('AGENTS.md');
-  const claudeWrapperLines = claudeDoc.trim().split(/\r?\n/).filter(Boolean);
   if (
     /node\s+doctor\.mjs\s+--json/.test(agentsDoc) &&
     /"warnings"\s*:\s*\[\.\.\.\]/.test(agentsDoc) &&
-    /"autoCopied"\s*:\s*\[\.\.\.\]/.test(agentsDoc) &&
-    claudeWrapperLines[0] === '@AGENTS.md' &&
-    claudeWrapperLines.length <= 8 &&
-    !/Does\s+`cv\.md`\s+exist\?/i.test(claudeDoc)
+    /"autoCopied"\s*:\s*\[\.\.\.\]/.test(agentsDoc)
   ) {
-    pass('AGENTS.md delegates onboarding state and autoCopied to doctor --json; CLAUDE.md stays thin');
+    pass('AGENTS.md delegates onboarding state and autoCopied to doctor --json');
   } else {
-    fail('AGENTS.md misses onboarding state docs or CLAUDE.md is not a thin wrapper');
+    fail('AGENTS.md misses onboarding state docs');
   }
 } catch (e) {
   fail(`Cold-start trigger test crashed: ${e.message}`);
@@ -13063,9 +13048,7 @@ try {
   }
 
   // AGENTS.md MUST route custom rules to the file AND seed it on onboarding.
-  // CLAUDE.md inherits this via its @AGENTS.md wrapper.
   const agentsMd = readFileSync(join(ROOT, 'AGENTS.md'), 'utf-8');
-  const claudeMd = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf-8');
   const sourceBoundaryStart = agentsMd.indexOf('## Source-of-Truth Boundary');
   const sourceBoundaryEnd = agentsMd.indexOf('Anything not in this list', sourceBoundaryStart);
   const sourceBoundary = agentsMd.slice(sourceBoundaryStart, sourceBoundaryEnd);
@@ -13074,12 +13057,11 @@ try {
     agentsMd.includes('modes/_custom.template.md') &&
     sourceBoundary.includes('modes/_custom.md') &&
     sourceBoundary.includes('procedural/style rules only') &&
-    sourceBoundary.includes('never introduces factual claims') &&
-    claudeMd.trim().startsWith('@AGENTS.md')
+    sourceBoundary.includes('never introduces factual claims')
   ) {
-    pass('AGENTS.md routes procedural custom rules without making them factual sources + CLAUDE.md inherits via wrapper');
+    pass('AGENTS.md routes procedural custom rules without making them factual sources');
   } else {
-    fail('AGENTS.md custom-rule source boundary or CLAUDE.md inheritance is incomplete (#1198, #1736)');
+    fail('AGENTS.md custom-rule source boundary is incomplete (#1198, #1736)');
   }
 
   const noUserData = readFileSync(join(ROOT, '.github/workflows/no-user-data.yml'), 'utf-8');
@@ -15239,14 +15221,8 @@ for (const skillPath of ['.claude/skills/career-ops/SKILL.md', '.agents/skills/c
 }
 
 try {
-  const claudeMdDoc = readFile('CLAUDE.md');
   const agentsMdDoc = readFile('AGENTS.md');
   const titlesRow = '| Wants to broaden the search with adjacent job titles suggested from the CV | `titles` |';
-  if (/^@(?:\.\/)?AGENTS\.md/m.test(claudeMdDoc)) {
-    pass('CLAUDE.md imports AGENTS.md for titles documentation');
-  } else {
-    fail('CLAUDE.md does not import AGENTS.md for titles documentation');
-  }
   if (agentsMdDoc.includes(titlesRow)) {
     pass('AGENTS.md registers the titles Skill Modes row');
   } else {

@@ -40,7 +40,7 @@ Değerlendirme 6 blok (A-F) üzerinden yapılır ve 1-5 arası global bir puan v
 - 4,5+ → Güçlü eşleşme, hemen başvur
 - 4,0-4,4 → İyi eşleşme, başvurmaya değer
 - 3,5-3,9 → Kabul edilebilir ama ideal değil; özel bir neden olmadıkça geç
-- 3,5'in altı → Başvuru önerilmez (CLAUDE.md'deki Etik Kullanım bölümüne bakın)
+- 3,5'in altı → Başvuru önerilmez (AGENTS.md'deki Etik Kullanım bölümüne bakın)
 
 ## İlan Meşruiyeti (Blok G)
 

@@ -22,13 +22,13 @@ not speculation.
 
 ## Step 0 — Repo shape (read before touching anything)
 
-- **Two layers (CLAUDE.md Data Contract — CRITICAL).** USER layer (`cv.md`, `config/profile.yml`,
+- **Two layers (AGENTS.md Data Contract — CRITICAL).** USER layer (`cv.md`, `config/profile.yml`,
   `portals.yml`, `modes/_profile.md`, `modes/_custom.md`, `data/*`, `reports/*`, `output/*`,
   `interview-prep/*`) is the operator's personal data — a loop pass must NEVER write it. Backlog
   work targets the SYSTEM layer (`*.mjs`, `templates/`, `dashboard/`, `docs/`) and local tooling
   (`scripts/`, `tests/scripts/`, `Makefile`, `TODOS.md`).
 - **This is a FORK of upstream santifer/career-ops.** `update-system.mjs apply` overwrites
-  system-layer files (including CLAUDE.md and `.github/`) wholesale from upstream. Prefer minimal,
+  system-layer files (including AGENTS.md and `.github/`) wholesale from upstream. Prefer minimal,
   surgical diffs to upstream-managed files; local-only files (`scripts/loop_*`, `TODOS.md`,
   `Makefile`, this skill) are safe.
 - **Personal-data guard:** `test-all.mjs` git-greps TRACKED files for leak patterns (emails,

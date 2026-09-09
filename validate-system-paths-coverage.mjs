@@ -114,7 +114,8 @@ if (process.argv.includes('--self-test')) {
   assert(covered('.editorconfig') === true, '.editorconfig must be covered (excluded, #1438/#1613)');
 
   // Test exact matches in SYSTEM_PATHS / USER_PATHS
-  assert(covered('CLAUDE.md') === true, 'CLAUDE.md must be covered (exact match)');
+  assert(covered('AGENTS.md') === true, 'AGENTS.md must be covered (exact match)');
+  assert(covered('CLAUDE.md') === false, 'Retired CLAUDE.md must not be restored by updates');
   assert(covered('.claude/settings.json') === true, '.claude/settings.json must be covered (USER_PATHS exact match, #1408)');
   assert(covered('.claude/hooks/pre-push-backup.sh') === true, '.claude/hooks/ scripts must be covered (USER_PATHS dir prefix match, same class as #1408)');
 

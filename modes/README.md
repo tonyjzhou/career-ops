@@ -8,7 +8,7 @@ coding CLI you use.
 Each mode file defines one workflow (evaluate, apply, scan, ...). The agent
 reads the mode plus the shared context and your user files, then executes it.
 Routing — which user request triggers which mode — lives in the Skill Modes
-table in `AGENTS.md` (mirrored in `CLAUDE.md`).
+table in `AGENTS.md`.
 
 ## Mode catalog
 

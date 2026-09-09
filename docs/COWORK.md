@@ -6,7 +6,7 @@ career-ops was built for AI coding CLIs, but it also runs inside [Claude Cowork]
 
 ## How it works
 
-Cowork mounts your career-ops folder and the agent reads the same instruction files the CLIs read (`CLAUDE.md` → `AGENTS.md`, `modes/`). There are no slash commands: you just talk — "evaluate this job posting", "scan my portals", "update my tracker" — and Claude runs the matching mode. You watch every file change in the sidebar, which reinforces the system's core rule: **you review everything before anything goes out.**
+Cowork mounts your career-ops folder and the agent reads the same instruction files the CLIs read (`AGENTS.md`, `modes/`). There are no slash commands: you just talk — "evaluate this job posting", "scan my portals", "update my tracker" — and Claude runs the matching mode. You watch every file change in the sidebar, which reinforces the system's core rule: **you review everything before anything goes out.**
 
 ## Quick start
 

@@ -1255,7 +1255,7 @@ for (const file of tsvFiles) {
     // three dedup tiers search `existingApps`, which only ever held rows read
     // from the file, so two TSVs for the same company+role in ONE run both
     // appended and the tracker gained duplicate rows — the exact outcome
-    // CLAUDE.md's "NEVER create new entries if company+role already exists"
+    // AGENTS.md's "NEVER create new entries if company+role already exists"
     // rule forbids. The parsed row's `raw` is the queued line, and
     // replaceTrackerLine() knows how to find it in `newLines`, so a later
     // higher-scored addition updates it in place just like a row already on

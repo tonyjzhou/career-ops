@@ -135,7 +135,6 @@ These files contain system logic, scripts, templates, and instructions that impr
 | `modes/ua/*` | Ukrainian language modes |
 | `modes/zh/*` | Chinese language modes |
 | `modes/heuristics/*` | Shared candidate-facing application heuristics |
-| `CLAUDE.md` | Agent instructions (Claude Code) |
 | `OPENCODE.md` | Agent instructions (OpenCode) |
 | `CODEX.md` | Agent instructions (Codex) |
 | `KIMI.md` | Agent instructions (Kimi CLI) |

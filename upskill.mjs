@@ -87,7 +87,7 @@ function readTextIfExists(path) {
 export const SCHEMA_VERSION = 1;
 
 // Reports below this global score count as "low fit" — the population whose
-// gaps matter most. Matches the apply threshold in Ethical Use (CLAUDE.md).
+// gaps matter most. Matches the apply threshold in Ethical Use (AGENTS.md).
 const LOW_FIT_SCORE = 4.0;
 
 // Skill vocabulary + canonical extractor moved to skill-extract.mjs (#1896) so

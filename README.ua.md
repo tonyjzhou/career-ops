@@ -209,7 +209,6 @@ npm run build:dashboard   # optional: build the standalone binary
 
 ```text
 career-ops/
-├── CLAUDE.md                    # Інструкції для агента
 ├── cv.md                        # Ваше резюме (створіть цей файл)
 ├── article-digest.md            # Ваші досягнення (необов'язково)
 ├── config/

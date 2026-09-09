@@ -64,7 +64,7 @@ Every evaluated offer is registered. `data/applications.md` is the canonical tra
 Safely pulls new system files from upstream without touching user data. It backs up, fetches, re-execs the target updater (resolving its import closure so a new import can't break the upgrade), then checks out only `SYSTEM_PATHS`. `BOOTSTRAP_PATHS` covers very old installs.
 
 ### Multi-CLI entry files
-Each CLI reads its own entry file, all of which point at the canonical `AGENTS.md`: `CLAUDE.md` (full), and thin `@AGENTS.md` redirect wrappers `OPENCODE.md`, `CODEX.md`, `GEMINI.md`, plus the `.agents/skills/` skill entrypoints. This is the [open agent skill standard](https://agentskills.io).
+`AGENTS.md` is the canonical instruction file. `OPENCODE.md` and `CODEX.md` redirect to it, and `.agents/skills/` supplies skill entrypoints. Hosts that do not discover `AGENTS.md` must load it explicitly. `GEMINI.md` remains a context guard.
 
 ### Dashboard (optional)
 A standalone Go TUI under `dashboard/` for browsing the pipeline. Isolated from the core — never required.

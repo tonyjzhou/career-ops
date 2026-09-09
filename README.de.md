@@ -239,7 +239,6 @@ Features: 6 Filter-Tabs, 4 Sortiermodi, gruppierte/flache Ansicht, lazy-loaded P
 ```text
 career-ops/
 ├── AGENTS.md                    # kanonische Agent-Anweisungen für alle CLIs
-├── CLAUDE.md                    # Claude-Code-Wrapper (importiert AGENTS.md)
 ├── CODEX.md                     # Codex-Wrapper (importiert AGENTS.md)
 ├── OPENCODE.md                  # OpenCode-Wrapper (importiert AGENTS.md)
 ├── cv.md                        # dein Lebenslauf (selbst erstellen)

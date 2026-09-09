@@ -220,7 +220,6 @@ npm run build:dashboard   # optional: build the standalone binary
 
 ```
 career-ops/
-├── CLAUDE.md                    # Инструкции для агента
 ├── cv.md                        # Ваше CV (создайте)
 ├── config/
 │   └── profile.example.yml      # Шаблон профиля

@@ -265,7 +265,6 @@ Fonctionnalités : 6 onglets de filtrage, 4 modes de tri, vue groupée ou plate,
 ```
 career-ops/
 ├── AGENTS.md                    # Instructions de l'agent canonique (tous CLI)
-├── CLAUDE.md                    # Wrapper Claude Code (importe AGENTS.md)
 ├── cv.md                        # Votre CV (à créer)
 ├── article-digest.md            # Vos réalisations clés (optionnel)
 ├── config/

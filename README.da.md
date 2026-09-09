@@ -211,7 +211,6 @@ Funktioner: 6 filterfaner, 4 sorteringstilstande, grupperet/flad visning, doven 
 ```text
 career-ops/
 ├── AGENTS.md                    # Kanoniske instruktioner til agenten (alle CLI'er)
-├── CLAUDE.md                    # Claude Code-wrapper (importerer AGENTS.md)
 ├── cv.md                        # Dit CV (opret denne fil)
 ├── article-digest.md            # Dine resultatbeviser (valgfrit)
 ├── config/

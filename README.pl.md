@@ -236,7 +236,6 @@ Funkcje: 6 zakładek filtrowania, 4 tryby sortowania, widok grupowany/płaski, l
 ```text
 career-ops/
 ├── AGENTS.md                    # Kanoniczne instrukcje dla agenta (wszystkie CLI)
-├── CLAUDE.md                    # Wrapper Claude Code (importuje AGENTS.md)
 ├── cv.md                        # Twoje CV (utwórz ten plik)
 ├── article-digest.md            # Twoje dowody osiągnięć (opcjonalne)
 ├── config/

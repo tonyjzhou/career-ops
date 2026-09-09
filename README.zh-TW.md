@@ -208,7 +208,6 @@ npm run build:dashboard   # optional: build the standalone binary
 
 ```
 career-ops/
-├── CLAUDE.md                    # 代理指令
 ├── cv.md                        # 你的履歷（需自行建立）
 ├── article-digest.md            # 你的成就佐證（選填）
 ├── config/

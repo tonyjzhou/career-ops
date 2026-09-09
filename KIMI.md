@@ -1,2 +1,2 @@
 @AGENTS.md
-<!-- Kimi config — imports AGENTS.md, same as CLAUDE.md -->
+<!-- Kimi config — imports the canonical AGENTS.md -->
