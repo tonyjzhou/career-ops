@@ -29,6 +29,7 @@ const STYLE = `
 .co-mdrawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(20rem,86vw);display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;transform:translateX(102%);transition:transform .34s cubic-bezier(.32,.72,0,1);will-change:transform;box-shadow:-16px 0 48px -16px rgba(0,0,0,.4);padding-top:calc(env(safe-area-inset-top) + .25rem)}
 .co-mdrawer.open{transform:translateX(0)}
 .co-msafe{padding-bottom:calc(1rem + env(safe-area-inset-bottom))}
+.co-mtabbar{padding-bottom:calc(.4rem + env(safe-area-inset-bottom));background:color-mix(in srgb, var(--surface) 92%, transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .co-pulse{animation:co-pulse 1.6s ease-in-out infinite}
 @keyframes co-pulse{0%,100%{opacity:1}50%{opacity:.35}}
 @media(prefers-reduced-motion:reduce){.co-mdrawer,.co-mscrim{transition:none}.co-pulse{animation:none}}
@@ -187,6 +188,43 @@ export function MobileNav() {
           </div>
         </div>
       </aside>
+
+      {/* Thumb-zone tab bar — the drawer needs 2 taps + aim; the 5 daily
+          destinations get 1 tap at thumb reach. Active = brand pill.
+          padding-bottom carries the home-bar inset so it never clips. */}
+      <nav
+        aria-label="Primary"
+        className="co-mtabbar fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/92 backdrop-blur md:hidden"
+      >
+        <div className="grid grid-cols-5 px-1 pt-1.5">
+          {NAV_ITEMS.filter((n) =>
+            ["/", "/explore", "/pipeline", "/analytics", "/cv"].includes(n.href),
+          ).map(({ href, label, icon: Icon }) => {
+            const active = isActivePath(href, pathname);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-medium transition-colors",
+                  active ? "text-brand-text" : "text-faint",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex h-7 items-center rounded-full px-4 transition-colors",
+                    active && "bg-brand-soft",
+                  )}
+                >
+                  <Icon className="size-[18px]" />
+                </span>
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </>
   );
 }

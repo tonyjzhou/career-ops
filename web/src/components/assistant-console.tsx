@@ -474,7 +474,7 @@ export function AssistantConsole() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 flex items-center justify-center gap-2 rounded-full border border-border bg-surface/90 py-1.5 pl-1.5 pr-4 shadow-lg backdrop-blur transition-colors hover:bg-surface-hover max-sm:min-h-[44px]"
+          className="fixed bottom-24 right-4 z-50 flex items-center md:bottom-5 md:right-5 justify-center gap-2 rounded-full border border-border bg-surface/90 py-1.5 pl-1.5 pr-4 shadow-lg backdrop-blur transition-colors hover:bg-surface-hover max-sm:min-h-[44px]"
           aria-label="Open assistant"
         >
           <CoMark size={26} />
@@ -483,7 +483,7 @@ export function AssistantConsole() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 flex h-[600px] max-h-[80vh] w-[400px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
+        <div className="fixed bottom-24 right-4 z-50 flex h-[600px] md:bottom-5 md:right-5 max-h-[80vh] w-[400px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
           <header className="flex items-center gap-2.5 border-b border-border px-4 py-3">
             <CoMark size={26} />
             <div className="flex-1">

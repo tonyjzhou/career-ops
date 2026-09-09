@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { CoMark } from "@/components/co-mark";
 import { AssistantConsole } from "@/components/assistant-console";
 import { MobileNav } from "@/components/mobile-nav";
+import { CommandPalette } from "@/components/command-palette";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { JobsProvider } from "@/components/jobs/job-store";
 import { PipelineProvider } from "@/components/pipeline/pipeline-provider";
@@ -25,22 +27,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <PipelineProvider>
       <ApplyProvider>
       <ExploreProvider>
+      <a
+        href="#main-content"
+        className="co-skip-link"
+      >
+        Skip to content
+      </a>
       <MobileNav />
       <div className="flex min-h-screen">
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface/30 p-4 md:flex">
-          <Link href="/" className="mb-8 flex items-center gap-2.5 px-1">
+          <Link href="/" className="mb-6 flex items-center gap-2.5 px-1">
             <CoMark size={32} />
             <span className={`${instrumentSerif.className} relative -top-px text-2xl font-normal tracking-tight text-landing`}>
               career-ops
             </span>
           </Link>
-          <nav className="flex flex-col gap-1">
+          {/* ⌘K entry point — discoverable without knowing the shortcut. */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("co:open-palette"))}
+            className="mb-4 flex w-full items-center gap-2.5 rounded-lg border border-border bg-surface/60 px-3 py-2 text-[13px] text-faint transition-colors hover:border-brand/40 hover:text-muted"
+            aria-label="Open command palette (Command K)"
+          >
+            <Search className="size-3.5" />
+            <span>Jump to…</span>
+            <kbd className="ml-auto rounded border border-border bg-surface-hover px-1.5 py-0.5 font-mono text-[10px]">
+              ⌘K
+            </kbd>
+          </button>
+          <nav className="flex flex-col gap-1" aria-label="Primary">
             {NAV_ITEMS.map(({ href, label, icon: Icon, chip }) => {
               const active = isActivePath(href, pathname);
               return (
                 <Link
                   key={href}
                   href={href}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                     active
@@ -70,8 +92,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </aside>
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <main id="main-content" className="flex-1 overflow-x-hidden" tabIndex={-1}>{children}</main>
         <AssistantConsole />
+        <CommandPalette />
         <FirstScoreView />
         <BetaBanner />
       </div>

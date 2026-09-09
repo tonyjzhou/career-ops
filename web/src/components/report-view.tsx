@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, FileText, ExternalLink, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, ExternalLink, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Application } from "@/lib/career-ops";
@@ -76,6 +76,8 @@ export function ReportView({
   app,
   report,
   canDelete = false,
+  prevId = null,
+  nextId = null,
 }: {
   id: string;
   app: Application | null;
@@ -84,6 +86,8 @@ export function ReportView({
    *  the raw .md filename is a dev artifact, not header content. */
   file?: string | null;
   canDelete?: boolean;
+  prevId?: string | null;
+  nextId?: string | null;
 }) {
   const meta = report ? parseReport(report) : null;
   const field = (label: string) => meta?.fields.find((f) => f.label === label)?.value;
@@ -149,6 +153,38 @@ export function ReportView({
           </div>
         )}
       </header>
+
+      {/* Prev / next — reports are read in sequence during triage; no back-and-forth to the table. */}
+      {(prevId || nextId) && (
+        <nav className="mt-5 flex items-center justify-between gap-2 text-sm" aria-label="Adjacent reports">
+          {prevId ? (
+            <Link
+              href={`/pipeline/${prevId}`}
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-border px-3.5 text-muted transition-colors hover:border-brand/40 hover:text-foreground"
+            >
+              <ArrowLeft className="size-3.5" /> #{prevId}
+            </Link>
+          ) : (
+            <span />
+          )}
+          <Link
+            href="/pipeline"
+            className="hidden text-xs text-faint transition-colors hover:text-foreground sm:block"
+          >
+            All reports
+          </Link>
+          {nextId ? (
+            <Link
+              href={`/pipeline/${nextId}`}
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-border px-3.5 text-muted transition-colors hover:border-brand/40 hover:text-foreground"
+            >
+              #{nextId} <ArrowRight className="size-3.5" />
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
 
       {report ? (
         <>
@@ -243,6 +279,28 @@ export function ReportView({
           No report file found for #{id} in <code className="text-foreground">reports/</code>.
         </div>
       )}
+
+      {/* Sticky decision bar — the verdict actions survive the scroll on mobile.
+          Desktop keeps the header CTAs; this only renders on small screens. */}
+      <div className="sticky bottom-20 z-20 mt-8 flex items-center gap-2 rounded-2xl border border-border bg-surface/90 p-2 shadow-lg backdrop-blur sm:hidden">
+        <Link
+          href="/pipeline"
+          className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl text-sm text-muted"
+        >
+          <ArrowLeft className="size-4" /> Pipeline
+        </Link>
+        {url && url.startsWith("http") && (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-xl bg-brand text-sm font-medium text-brand-foreground"
+          >
+            Posting <ExternalLink className="size-3.5" />
+          </a>
+        )}
+      </div>
+      <div className="h-20 sm:hidden" aria-hidden />
     </div>
   );
 }

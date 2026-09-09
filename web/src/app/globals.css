@@ -209,3 +209,35 @@ html.dark .co-cost[data-tone="free"]{color:hsl(158 64% 60%);background:hsl(158 6
 .co-cost[data-tone="spend"]{color:hsl(35 9% 34%);background:hsl(35 8% 46% / .12);border-color:hsl(35 8% 46% / .26)}
 html.dark .co-cost[data-tone="spend"]{color:hsl(35 8% 70%);background:hsl(35 6% 60% / .12);border-color:hsl(35 6% 60% / .24)}
 .co-cost svg{width:.85em;height:.85em}
+
+/* 10x UX foundation */
+.co-skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 100;
+  border-radius: 0.6rem;
+  background: var(--color-brand);
+  color: var(--color-brand-foreground);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  transition: top 0.15s ease;
+}
+.co-skip-link:focus-visible {
+  top: 1rem;
+}
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
+}
+@keyframes co-palette-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.co-palette { animation: co-palette-in 160ms ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .co-palette { animation: none; }
+  .co-skip-link { transition: none; }
+}
