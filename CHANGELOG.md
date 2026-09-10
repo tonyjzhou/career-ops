@@ -1,5 +1,63 @@
 # Changelog
 
+## [1.28.0](https://github.com/tonyjzhou/career-ops/compare/career-ops-v1.27.0...career-ops-v1.28.0) (2026-09-10)
+
+
+### Features
+
+* adapt contacto mode by contact type (recruiter/HM/peer/interviewer) ([40cc702](https://github.com/tonyjzhou/career-ops/commit/40cc702dd6a087814c48af2da7117054bc9a743a))
+* add --min-score flag to batch runner ([#249](https://github.com/tonyjzhou/career-ops/issues/249)) ([06405bf](https://github.com/tonyjzhou/career-ops/commit/06405bfe9a914aaab9c429f852e1b130700a9482))
+* add {{PHONE}} placeholder to CV template ([#287](https://github.com/tonyjzhou/career-ops/issues/287)) ([19b4148](https://github.com/tonyjzhou/career-ops/commit/19b4148c1d8c4a7f8264b75ecfd07616388980b1))
+* add Block G — posting legitimacy assessment ([fa8b84e](https://github.com/tonyjzhou/career-ops/commit/fa8b84e0d58ed8683f2e84a2eabc93becf7dcbf7))
+* add follow-up cadence tracker mode ([3217e77](https://github.com/tonyjzhou/career-ops/commit/3217e77ef83e0aaec50f507d4337c92012c35139))
+* add GitHub Actions CI + auto-labeler + welcome bot + /run skill ([d8eda9b](https://github.com/tonyjzhou/career-ops/commit/d8eda9b90fbdb77bc4f770667ad57fa2e3a0ee39))
+* add Nix flake devshell with Playwright support ([a364046](https://github.com/tonyjzhou/career-ops/commit/a364046f37337477c4e59bf3cede2407f176c16f))
+* add OpenCode slash commands for career-ops ([#67](https://github.com/tonyjzhou/career-ops/issues/67)) ([92137d4](https://github.com/tonyjzhou/career-ops/commit/92137d4e1fd878d6ed7f53f115aa13ecae254e08))
+* add scan.mjs — zero-token portal scanner ([a7cd72c](https://github.com/tonyjzhou/career-ops/commit/a7cd72c905b8814a4fc6b8d7d2c54e7d14c272a4))
+* **dashboard:** add Catppuccin Latte light theme with auto-detection ([67b695b](https://github.com/tonyjzhou/career-ops/commit/67b695b15ac6ac5eb2230b308f3b92ddc3966f3e))
+* **dashboard:** add manual refresh shortcut ([#246](https://github.com/tonyjzhou/career-ops/issues/246)) ([b448784](https://github.com/tonyjzhou/career-ops/commit/b4487840d88b9fefe606fe42c7bf843ecb8d7f62))
+* **dashboard:** add progress analytics screen ([78997fa](https://github.com/tonyjzhou/career-ops/commit/78997fad9f31d3962a901dffb7ee2b8ffa4c9218))
+* **dashboard:** add vim motions to pipeline screen ([#262](https://github.com/tonyjzhou/career-ops/issues/262)) ([1e6b1c8](https://github.com/tonyjzhou/career-ops/commit/1e6b1c8e52689de9ef1f5a794db8df6542537e0a))
+* **dashboard:** aligned tables and markdown syntax rendering in viewer ([ff821c3](https://github.com/tonyjzhou/career-ops/commit/ff821c3424a008b9e17a4cbc6a59e2c233ad5f47))
+* expand portals.example.yml with 8 dev-tools companies + 23 search queries ([#140](https://github.com/tonyjzhou/career-ops/issues/140)) ([ccc4b7f](https://github.com/tonyjzhou/career-ops/commit/ccc4b7f4c238b80f875796cadced3f02dc8cac9c))
+* **i18n:** add Japanese README + language modes for Japan market ([8496c2d](https://github.com/tonyjzhou/career-ops/commit/8496c2d22871ec596d879256751eb25411229197))
+* **tooling:** port value-hunt's agentic TODOS.md drain-loop system ([7b0d55f](https://github.com/tonyjzhou/career-ops/commit/7b0d55fc560bc81eb49b305bce14e61f006d8110))
+
+
+### Bug Fixes
+
+* 10 bug fixes — resource leaks, command injection, Unicode, navigation ([43cdb93](https://github.com/tonyjzhou/career-ops/commit/43cdb93f0dc24fe034bf5e8f0e79b297769d3790))
+* add data/ fallback to UpdateApplicationStatus ([#55](https://github.com/tonyjzhou/career-ops/issues/55)) ([fcf051e](https://github.com/tonyjzhou/career-ops/commit/fcf051e3bf4d4b1da924518ded31c7e139be5174))
+* add stopword filtering and overlap ratio to roleMatch ([#248](https://github.com/tonyjzhou/career-ops/issues/248)) ([41233db](https://github.com/tonyjzhou/career-ops/commit/41233db55ba5e9e8fbc5f9b4c29ae3ebf73a63b7))
+* align portals.example.yml indentation for new companies ([f5be20a](https://github.com/tonyjzhou/career-ops/commit/f5be20a9519bf0f9c4b9cde5419e90e7fadab3fd))
+* **ci:** restore missing release-please config and sync manifest ([eead528](https://github.com/tonyjzhou/career-ops/commit/eead528656063ff1fc2313dc2668188f1d5809aa))
+* **ci:** use pull_request_target for labeler on fork PRs ([#260](https://github.com/tonyjzhou/career-ops/issues/260)) ([1f1bb2a](https://github.com/tonyjzhou/career-ops/commit/1f1bb2abb3fde2ce8c86e773e987fce44b30ee37))
+* correct _shared.md → _profile.md reference in CUSTOMIZATION.md (closes [#137](https://github.com/tonyjzhou/career-ops/issues/137)) ([2dc5aa7](https://github.com/tonyjzhou/career-ops/commit/2dc5aa76ffee780435caa1019aa75cf94ecb196f))
+* correct dashboard launch path in docs ([#80](https://github.com/tonyjzhou/career-ops/issues/80)) ([62996d8](https://github.com/tonyjzhou/career-ops/commit/62996d8cb785072b12d7ac47070f57ae61590609))
+* **dashboard:** show dates in pipeline list ([#298](https://github.com/tonyjzhou/career-ops/issues/298)) ([e291cd0](https://github.com/tonyjzhou/career-ops/commit/e291cd0933c013168359a01b39b5fd04947b9b52))
+* ensure data/ and output/ dirs exist before writing in scripts ([#261](https://github.com/tonyjzhou/career-ops/issues/261)) ([8768d0b](https://github.com/tonyjzhou/career-ops/commit/8768d0b6ef651f6ec2cb8e5010bd47bce80ff1ea))
+* filter expired WebSearch links before they reach the pipeline ([#57](https://github.com/tonyjzhou/career-ops/issues/57)) ([83f5072](https://github.com/tonyjzhou/career-ops/commit/83f5072227a6d3d34053395f84a336b5232ef835))
+* improve default PDF readability ([#85](https://github.com/tonyjzhou/career-ops/issues/85)) ([2c2cdcb](https://github.com/tonyjzhou/career-ops/commit/2c2cdcbc732269f9b4231cb77cc8d5387a908efb))
+* liveness checks ignore nav/footer Apply text, expired signals win ([9bf01e2](https://github.com/tonyjzhou/career-ops/commit/9bf01e20d44361742b82b76ea3ce4225911b97f6))
+* **ops:** keep personal data files out of the public repo ([c7f2b53](https://github.com/tonyjzhou/career-ops/commit/c7f2b53119e41375564ba89a559a5cc68f09c71e))
+* **ops:** wire npm test to test-all so gcam pre-commit passes ([33b6949](https://github.com/tonyjzhou/career-ops/commit/33b69493fb067e14904d2f3cedd552e773a2be26))
+* **pdf:** navigate file:// so [@font-face](https://github.com/font-face) fonts load (no Helvetica fallback) ([7451b7d](https://github.com/tonyjzhou/career-ops/commit/7451b7d564f15265f9040cb6f6d228ec64f958e5))
+* **pdf:** re-apply file:// navigation for [@font-face](https://github.com/font-face) (reverted by v1.10.0 update) ([5834f4d](https://github.com/tonyjzhou/career-ops/commit/5834f4d7751a429fc9a540460f7b5003d3727664))
+* remove wellfound, lever and remotefront from portals.example.yml ([#286](https://github.com/tonyjzhou/career-ops/issues/286)) ([a100887](https://github.com/tonyjzhou/career-ops/commit/a1008875ab10b510af23b81211c87c267b1a62e6))
+* replace grep -P with POSIX-compatible grep in batch-runner.sh ([e309567](https://github.com/tonyjzhou/career-ops/commit/e3095678fd0d0f22ac529cf4e5c496e9cd38fd5c))
+* test-all.mjs scans only git-tracked files, avoids false positives ([9fc3ba2](https://github.com/tonyjzhou/career-ops/commit/9fc3ba23e8fcd663f83b0bac62417401c4da7bda))
+* **tooling:** deny 'docker compose push' in loop settings ([5e06d4a](https://github.com/tonyjzhou/career-ops/commit/5e06d4abe0a97593921c69ebf0977830d3eb7a52))
+* use candidate name from profile.yml in PDF filename ([e2754b3](https://github.com/tonyjzhou/career-ops/commit/e2754b3edc096a57cb3a9ebc8efda87751dbec27))
+* use execFileSync to prevent shell injection in test-all.mjs ([354d85f](https://github.com/tonyjzhou/career-ops/commit/354d85fdbfe522ef329da259ebb3f724030f2c21))
+* use fileURLToPath for cross platform compatible paths in tracker scripts ([#32](https://github.com/tonyjzhou/career-ops/issues/32)) ([#58](https://github.com/tonyjzhou/career-ops/issues/58)) ([6748504](https://github.com/tonyjzhou/career-ops/commit/6748504af3a198246012d43e701cbe4fa01493d7))
+* use hi@santifer.io in English README ([7ca2004](https://github.com/tonyjzhou/career-ops/commit/7ca2004c7c3260fb7aeec72a1ff136e884516979))
+* **worktree:** auto-seed gitignored user-layer on SessionStart ([38780a0](https://github.com/tonyjzhou/career-ops/commit/38780a0d55d671ae644c081c13e13b14681b3d4d))
+
+
+### Performance Improvements
+
+* compress hero banner from 5.7MB to 671KB ([28de18f](https://github.com/tonyjzhou/career-ops/commit/28de18f7d96113fa045762ee8273ae8cca76a856))
+
 ## [1.27.0](https://github.com/santifer/career-ops/compare/career-ops-v1.26.0...career-ops-v1.27.0) (2026-08-18)
 
 
